@@ -4,8 +4,24 @@ const Region = require("../../../models/regions")
 module.exports = {
   async radiusSearch(req, res) {
     const { long, lat, rad } = req.query
-    console.log("req.query ==> ", req.query)
+
     try {
+      // validation start.........
+
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(long)) {
+        return res.status(400).json({ error: true, message: "Field 'long' not valid format!!!" })
+      }
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(lat)) {
+        return res.status(400).json({ error: true, message: "Field 'lat' not valid format!!!" })
+      }
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(rad)) {
+        return res.status(400).json({ error: true, message: "Field 'rad' not valid format!!!" })
+      }
+      // validation end..........
+
       const regionData = await Region.find(
         {
           geometry: {
@@ -16,11 +32,9 @@ module.exports = {
           }
         },
       ).exec()
-      // console.log("demoData ==> ", regionData)
       return res.status(200).json({ success: true, msg: "All data for given radius", data: regionData })
-    } catch (error) {
-      // console.log("error ==> ", error)
-      return res.status(500).json({ message: "Server error" })
+    } catch (err) {
+      return res.status(500).json({ error: true, message: err.message })
     }
   },
 
