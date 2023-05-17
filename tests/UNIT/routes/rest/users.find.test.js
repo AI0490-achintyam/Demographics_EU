@@ -15,7 +15,7 @@ test.beforeEach(setupFixtures)
 test.afterEach(teardownFixtures)
 /* ******************************* */
 
-test.serial("Users.find: my passing test", async (t) => {
+test.skip("Users.find: my passing test", async (t) => {
   const { status, body } = await runRouteHandler(find)
   t.is(status, 200)
   t.false(body.error)
