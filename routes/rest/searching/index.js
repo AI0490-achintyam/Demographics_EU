@@ -32,7 +32,7 @@ module.exports = {
           }
         },
       ).exec()
-      return res.status(200).json({ success: true, msg: "All data for given radius", data: regionData })
+      return res.status(200).json({ error: false, data: regionData })
     } catch (err) {
       return res.status(500).json({ error: true, message: err.message })
     }
@@ -48,18 +48,57 @@ module.exports = {
   },
 
   async msa(req, res) {
+    const { geoId } = req.params
     try {
-      return 0
-    // eslint-disable-next-line no-unreachable
+      const msa = await Region.findOne({
+        geoId,
+        geographicLevel: "MSA"
+      }).exec()
+      if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
+
+      const regionsWithinMsa = await Region.find({
+        geographicLevel: {
+          $in: [
+            "Tract", "Block Group", "Blocks"
+          ]
+        },
+        centroid: {
+          $geoWithin: {
+            $geometry: msa.toObject().geometry
+          }
+        }
+      }).exec()
+      return res.status(200).json({ error: false, regions: regionsWithinMsa })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
   },
 
   async zipcode(req, res) {
+    const { geoId } = req.params
     try {
-      return 0
-    // eslint-disable-next-line no-unreachable
+      const zipcode = await Region.findOne({
+        geoId,
+        geographicLevel: "Zipcode"
+
+      }).exec()
+      if (zipcode === null) return res.status(400).json({ error: true, message: `No such Zipcode with geo id ${geoId}` })
+
+      const regionsWithinZipcode = await Region.find({
+
+        geographicLevel: {
+          $in: [
+            "Tract", "Block Group", "Blocks"
+          ]
+
+        },
+        centroid: {
+          $geoWithin: {
+            $geometry: zipcode.geometry
+          }
+        }
+      }).exec()
+      return res.status(200).json({ error: false, regions: regionsWithinZipcode })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }

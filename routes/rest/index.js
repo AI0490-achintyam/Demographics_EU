@@ -30,9 +30,9 @@ router.post("/login", login.post) // UNAUTHENTICATED
 
 // Search list of searching routes ...................
 router.get("/search/radius", searching.radiusSearch)
-router.get("/search/drivetime", searching.driveTime)
-router.get("/search/msa", searching.msa)
-router.get("/search/zipcode", searching.zipcode)
+router.get("/search/drivetime/:geoId", searching.driveTime)
+router.get("/search/msa/:geoId", searching.msa)
+router.get("/search/zipcode/:geoId", searching.zipcode)
 router.get("/search/regions", searching.regions)
 router.get("/search/point", searching.point)
 router.get("/search/customfile", searching.customfile)
