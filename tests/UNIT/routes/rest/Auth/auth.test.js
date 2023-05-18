@@ -1,5 +1,5 @@
 const test = require("ava")
-const Joi = require("joi")
+// const Joi = require("joi")
 // const jwt = require("jsonwebtoken")
 const {
   runRouteHandler, setupMongo, teardownMongo, setupFixtures, teardownFixtures
