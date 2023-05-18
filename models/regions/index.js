@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const mongoosePaginate = require("mongoose-paginate-v2")
 
 const RegionSchema = new mongoose.Schema({
   geoId: {
@@ -43,6 +44,7 @@ RegionSchema.virtual("_census", {
 RegionSchema.set("timestamps", true)
 RegionSchema.set("toJSON", { virtuals: true })
 RegionSchema.set("toObject", { virtuals: true })
+RegionSchema.plugin(mongoosePaginate)
 
 // RegionSchema.set("discriminatorKey", "geometryType") // redundant
 

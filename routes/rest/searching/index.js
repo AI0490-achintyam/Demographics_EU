@@ -105,20 +105,75 @@ module.exports = {
   },
 
   async regions(req, res) {
+    const {
+      page = 1, size = 10, geoLevel, name
+    } = req.query
+    console.log("req.query ==> ", req.query)
     try {
-      return 0
-    // eslint-disable-next-line no-unreachable
+      if (name.trim() === "") {
+        return res.status(400).json({ error: true, message: "Field 'name' not valid format!!!" })
+      }
+      const query = { $text: { $search: name } }
+
+      const paginationOptions = {
+        page,
+        limit: size,
+        geographicLevel: geoLevel,
+        sort: { _id: -1 }
+      }
+      console.log("paginationOptions ==> ", paginationOptions)
+      const { docs, totalDocs, totalPages } = await Region.paginate(
+        query,
+        paginationOptions
+      )
+      // console.log("docs ==> ", docs)
+
+      return res.status(200).json(
+        {
+          error: false,
+          regions: docs,
+          totalData: totalDocs,
+          totalPages,
+          page,
+          size
+        }
+      )
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
   },
 
   async point(req, res) {
+    const { long, lat } = req.query
+
     try {
-      return 0
-    // eslint-disable-next-line no-unreachable
+      // validation start.........
+
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(long)) {
+        return res.status(400).json({ error: true, message: "Field 'long' not valid format!!!" })
+      }
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(lat)) {
+        return res.status(400).json({ error: true, message: "Field 'lat' not valid format!!!" })
+      }
+      // validation end
+
+      const searchPoint = {
+        type: "Point",
+        coordinates: [Number(long), Number(lat)],
+      }
+
+      const searchRegionData = await Region.find({
+        geometry: {
+          $geoIntersects: {
+            $geometry: searchPoint
+          },
+        },
+      }).exec()
+      return res.status(200).json({ error: false, data: searchRegionData })
     } catch (error) {
-      return res.status(500).json({ error: true, message: error.message })
+      return res.status(500).json({ message: "Server error" })
     }
   },
 
@@ -129,5 +184,5 @@ module.exports = {
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
-  },
+  }
 }

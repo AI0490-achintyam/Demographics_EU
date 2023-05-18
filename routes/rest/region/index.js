@@ -3,9 +3,18 @@ const Region = require("../../../models/regions")
 
 module.exports = {
   async get(req, res) {
+    const { id } = req.params
     try {
-      return 0
-    // eslint-disable-next-line no-unreachable
+      if (mongoose.isObjectIdOrHexString(id) === false) return res.status(400).json({ error: true, message: "Field 'id' must be a vaild  regionId!!" })
+
+      const regionData = await Region.findOne({
+        _id: id
+      })
+
+      if (!regionData) {
+        return res.status(404).send("Region not found")
+      }
+      return res.status(200).json({ error: false, data: regionData })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
