@@ -106,36 +106,35 @@ module.exports = {
 
   async regions(req, res) {
     const {
-      page = 1, size = 10, geoLevel, name
+      geographicLevel, name
     } = req.query
-    console.log("req.query ==> ", req.query)
+
     try {
       if (name.trim() === "") {
         return res.status(400).json({ error: true, message: "Field 'name' not valid format!!!" })
       }
       const query = { $text: { $search: name } }
 
+      if (geographicLevel !== undefined) {
+        if (typeof geographicLevel === "string" || ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "msaType"].includes(geographicLevel)) {
+          query.geographicLevel = geographicLevel
+        } else {
+          return res.status(400).json({ error: true, message: "Field 'geographicLevel not found !!!" })
+        }
+      }
+
       const paginationOptions = {
-        page,
-        limit: size,
-        geographicLevel: geoLevel,
         sort: { _id: -1 }
       }
-      console.log("paginationOptions ==> ", paginationOptions)
-      const { docs, totalDocs, totalPages } = await Region.paginate(
+      const { docs } = await Region.paginate(
         query,
         paginationOptions
       )
-      // console.log("docs ==> ", docs)
 
       return res.status(200).json(
         {
           error: false,
           regions: docs,
-          totalData: totalDocs,
-          totalPages,
-          page,
-          size
         }
       )
     } catch (error) {
