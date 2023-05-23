@@ -2,6 +2,8 @@ const express = require("express")
 const router = express.Router()
 
 const { expressjwt } = require("express-jwt")
+const multer = require("multer")
+const upload = multer({ dest: "public/upload/rdoc" })
 
 // const checkJwt = expressjwt({ secret: process.env.SECRET, algorithms: ["HS256"] }) // the JWT auth check middleware
 
@@ -14,6 +16,8 @@ const searching = require("./searching")
 const region = require("./region")
 const census = require("./census")
 const references = require("./references")
+// const geoJsonmiddleware = require("../middleware/geoJsonMiddleware")
+// const shpToGeojsonmiddleware = require("../middleware/shpToGeojsonmiddleware")
 
 router.post("/login", login.post) // UNAUTHENTICATED
 // router.post("/signup", signup.post) // UNAUTHENTICATED
@@ -35,7 +39,8 @@ router.get("/search/msa/:geoId", searching.msa)
 router.get("/search/zipcode/:geoId", searching.zipcode)
 router.get("/regions", searching.regions)
 router.get("/search/point", searching.point)
-router.get("/search/customfile", searching.customfile)
+router.post("/search/customfile", upload.single("rdocs"), searching.customfile)
+// router.get("/search/customfile", upload, searching.customfile)
 
 // Search particular regions data.................
 router.get("/region/:id", region.get)
