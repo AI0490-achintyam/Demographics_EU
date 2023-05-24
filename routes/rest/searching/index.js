@@ -1,4 +1,4 @@
-// const execa = require("execa")
+const execa = require("execa")
 const { rimraf } = require("rimraf")
 const Region = require("../../../models/regions")
 
@@ -41,8 +41,7 @@ module.exports = {
 
   async driveTime(req, res) {
     try {
-      return 0
-    // eslint-disable-next-line no-unreachable
+      return res.status(501).send("Not Implemented!")
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
@@ -179,20 +178,22 @@ module.exports = {
 
   async customfile(req, res) {
     try {
-      // const rdocs = req.file
-      // if (rdocs.originalname.split(".").filter(Boolean).slice(1).join(".") !== "shp") {
-      //   await rimraf(rdocs.path)
-      //   return res.status(400).json({ error: true, message: "Only .shp file extension support" })
+      const rdocs = req.file
+      if (rdocs.originalname.split(".").filter(Boolean).slice(1).join(".") !== "shp") {
+        await rimraf(rdocs.path)
+        return res.status(400).json({ error: true, message: "Only .shp file extension support" })
+      }
+      // if (process.env.SHAPE_RESTORE_SHX === "YES") {
+      //   const stdout = await execa("ogr2ogr", ["-f", "GeoJSON", `/home/ai/DemographicsAPI/public/geojsonoutput/op-${new Date().getTime()}.geojson`, `/home/ai/DemographicsAPI/public/uploads/rdoc/${rdocs.rdoc}`])
+      //   console.log("stdout ==> ", stdout)
       // }
-      // process.env.SHAPE_RESTORE_SHX = "YES"
-      // // let { data } = await ogr2ogr("/public/upload/rdoc/to/spatial/file")
-      // // console.log(data)
-      // const { stdout } = await execa("ogr2ogr", [`/home/ai/Demographics/public/geojsonoutput/op-${new Date().getTime()}.geojson`, `/home/ai/Demographics/public/uploads/rdoc/${rdocs.rdoc}`])
-      // console.log("stdout ==> ", stdout)
-      // return res.status(200).json({ error: true, message: "File inserted successfully" })
-      return 0
-    // eslint-disable-next-line no-unreachable
+      const output = `/home/ai/DemographicsAPI/public/uploads/rdoc/${rdocs.rdoc}`
+      console.log("output ==> ", output)
+      return res.status(200).json({ error: true, message: "File inserted successfully" })
+      // let { data } = await ogr2ogr("/public/upload/rdoc/to/spatial/file")
+      // console.log(data)
     } catch (error) {
+      console.log("error ==> ", error)
       return res.status(500).json({ error: true, message: error.message })
     }
   },
