@@ -3,7 +3,7 @@ const sinon = require("sinon")
 const {
   runRouteHandler, setupMongo, teardownMongo, setupFixtures, teardownFixtures
 } = require("../../../../_utils")
-const { del } = require("../../../../../routes/rest/users")
+const { delete : del } = require("../../../../../routes/rest/users")
 const User = require("../../../../../models/user")
 
 /** Setup & Teardown code (COMMON) */

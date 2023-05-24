@@ -1,40 +1,26 @@
 const mongoose = require("mongoose")
 
 module.exports = [{
-  _id: mongoose.Types.ObjectId("646706e194140e5d04fdba4b"),
-  geoId: 60650408211,
-  name: "Block Group 1, Census Tract 408.21, Riverside County, California",
-  geographicLevel: "MSA",
-  centroid: {
-    type: "Point",
-    coordinates: [
-      -84.091998,
-      30.455749
-    ]
+  _id: mongoose.Types.ObjectId("64645fc10adf19295e261088"),
+  userName: "test",
+  password: "test",
+  name: {
+    first: "Rishi",
+    last: "Mishra"
   },
-  geometry: {
-    type: "Polygon",
-    coordinates: [
-      [
-        [
-          -84.091998,
-          30.455749
-        ]
-      ]
-    ]
+  email: "rishi@test.com",
+  phoneNumber: "9977665544",
+  isActiveStatus: true,
+  isDeleted: false,
+  forgotpassword: {
+    requestedAt: null,
+    token: null,
+    expiresAt: null
   },
-  _censusData: {
-    geoId: 60371972001,
-    name: "Block Group 1, Census Tract 1972, Los Angeles County, California",
-    geographicLevel: "MSA",
-    state: 6,
-    country: 37,
-    tract: 197200,
-    blockGroup: 1,
-    latitude: 34.08929258664407,
-    longitude: -118.23513022842144,
-    censusAttributes: {}
-  }
+  _createdBy: "64645fa20adf19295e261087",
+  _updatedBy: null,
+  createdAt: "2023-02-07T09:29:49.267+00:00",
+  updatedAt: "2023-02-07T09:29:49.267+00:00"
 },
 {
   _id: mongoose.Types.ObjectId("64645fa20adf19295e261087"),
