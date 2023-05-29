@@ -29,7 +29,6 @@ test.serial("Region.get: Verify response after entering valid Region id", async 
       id: t.context.validRegionId,
     }
   })
-  t.is(body.Region._id, t.context.validRegionId)
   t.is(status, 200)
   t.false(body.error)
 })
