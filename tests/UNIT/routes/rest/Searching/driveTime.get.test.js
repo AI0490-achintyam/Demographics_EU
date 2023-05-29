@@ -36,7 +36,7 @@ test.beforeEach(async (t) => {
 //   id: Joi.string()
 // }))
 
-test.serial("drivetime.get: Verify response after entering valid data in longitude,latitude ", async (t) => {
+test.serial("drivetime.get: Verify response after entering valid data in longitude,latitude and time", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })

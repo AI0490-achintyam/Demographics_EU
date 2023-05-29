@@ -2,7 +2,7 @@ const mongoose = require("mongoose")
 
 module.exports = [{
   _id: mongoose.Types.ObjectId("646706e194140e5d04fdba4b"),
-  geoId: 60650408211,
+  geoId: "60650408211",
   name: "Block Group 1, Census Tract 408.21, Riverside County, California",
   geographicLevel: "MSA",
   centroid: {
