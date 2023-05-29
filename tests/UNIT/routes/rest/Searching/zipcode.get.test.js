@@ -17,7 +17,7 @@ test.afterEach(teardownFixtures)
 test.beforeEach(async (t) => {
   // eslint-disable-next-line no-param-reassign
   t.context.query = {
-    zipcode: "711101"
+    geoId: "60650408211"
   }
   // eslint-disable-next-line no-param-reassign
   t.context.invalidquery = {
@@ -34,7 +34,7 @@ test.beforeEach(async (t) => {
 //   id: Joi.string()
 // }))
 
-test.serial("zipcode.get: Verify response after entering valid data in zipcode ", async (t) => {
+test.serial("zipcode.get: Verify response after entering valid data in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
@@ -52,49 +52,49 @@ test.serial("zipcode.get: Verify response after entering invalid query", async (
   t.false(body.error)
 })
 
-test.serial("zipcode.get: Verify response after entering integer value in zipcode ", async (t) => {
+test.serial("zipcode.get: Verify response after entering integer value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, zipcode: 100 }
+    query: { ...t.context.query, geoId: 100 }
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("zipcode.get: Verify response after entering invalid string value in zipcode ", async (t) => {
+test.serial("zipcode.get: Verify response after entering invalid string value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, zipcode: "x" }
+    query: { ...t.context.query, geoId: "x" }
   })
   t.is(status, 200)
   t.false(body.error)
 })
 
-test.serial("zipcode.get: Verify response after entering array value in zipcode ", async (t) => {
+test.serial("zipcode.get: Verify response after entering array value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, zipcode: ["711101"] }
+    query: { ...t.context.query, geoId: ["711101"] }
   })
   t.is(status, 500)
   t.true(body.error)
 })
 
-test.serial("zipcode.get: Verify response after entering undefined value in zipcode ", async (t) => {
+test.serial("zipcode.get: Verify response after entering undefined value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, zipcode: undefined }
+    query: { ...t.context.query, geoId: undefined }
   })
   t.is(status, 200)
   t.false(body.error)
 })
 
-test.serial("zipcode.get: Verify response after entering null value in zipcode ", async (t) => {
+test.serial("zipcode.get: Verify response after entering null value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, zipcode: null }
+    query: { ...t.context.query, geoId: null }
   })
   t.is(status, 200)
   t.false(body.error)
 })
 
-test.serial("zipcode.get: Verify response after entering boolean value in zipcode ", async (t) => {
+test.serial("zipcode.get: Verify response after entering boolean value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, zipcode: true }
+    query: { ...t.context.query, geoId: true }
   })
   t.is(status, 400)
   t.true(body.error)
