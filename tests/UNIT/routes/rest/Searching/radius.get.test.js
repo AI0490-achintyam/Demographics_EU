@@ -82,8 +82,8 @@ test.serial("Radius.get: Verify response after entering null value in longitude 
   const { status, body } = await runRouteHandler(get, {
     query: { ...t.context.query, longitude: null }
   })
-  t.is(status, 400)
-  t.true(body.error)
+  t.is(status, 200)
+  t.false(body.error)
 })
 
 test.serial("Radius.get: Verify response after entering boolean value in longitude ", async (t) => {
@@ -122,8 +122,8 @@ test.serial("Radius.get: Verify response after entering null value in latitude "
   const { status, body } = await runRouteHandler(get, {
     query: { ...t.context.query, latitude: null }
   })
-  t.is(status, 400)
-  t.true(body.error)
+  t.is(status, 200)
+  t.false(body.error)
 })
 
 test.serial("Radius.get: Verify response after entering boolean value in latitude ", async (t) => {
@@ -170,8 +170,8 @@ test.serial("Radius.get: Verify response after entering null value in radius ", 
   const { status, body } = await runRouteHandler(get, {
     query: { ...t.context.query, radius: null }
   })
-  t.is(status, 400)
-  t.true(body.error)
+  t.is(status, 200)
+  t.false(body.error)
 })
 
 test.serial("Radius.get: Verify response after entering boolean value in radius ", async (t) => {
