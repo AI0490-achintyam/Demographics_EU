@@ -1,9 +1,9 @@
 {
-  "name": "express-skeleton-2",
-  "version": "2.1.0",
-  "description": "A starter template for Express JS apps, with sane defaults",
-  "title": "Express Skeleton 2",
-  "url": "https://github.com/sayanriju/express-skeleton-2",
+  "name": "Demographics API",
+  "version": "1.0.0",
+  "description": "This demographics API will add value to the public Census data. It can be used to augment the public Census data. The Census data provides information about population counts, age ranges, ethnicities, and other demographic information.These proprietary models use to calculate demographics information for any area defined.",
+  "title": "Demographics API",
+  "url": "http://localhost:3000/api/v1",
   "order": [
     
   ]

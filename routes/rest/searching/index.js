@@ -3,6 +3,28 @@ const { rimraf } = require("rimraf")
 const Region = require("../../../models/regions")
 
 module.exports = {
+
+  /**
+   *
+   * @api {get} /search/radius Radius Search
+   * @apiName Search radius
+   * @apiGroup Searching
+   * @apiVersion  1.0.0
+   * @apiPermission User
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
+   *
+   * @apiQuery {Number} long Enter longitude of the given point
+   * @apiQuery {Number} lat Enter latitude of the given point
+   * @apiQuery {Number} rad Enter scaler distance/radius in terms of meters
+   * @apiSuccessExample {json} Success-Response:200
+   * {
+        "error": false,
+        "region": [
+          {}
+        ]
+   *  }
+  */
+
   async radiusSearch(req, res) {
     const { long, lat, rad } = req.query
 
@@ -33,11 +55,32 @@ module.exports = {
           }
         },
       ).exec()
-      return res.status(200).json({ error: false, data: regionData })
+      return res.status(200).json({ error: false, regions: regionData })
     } catch (err) {
       return res.status(500).json({ error: true, message: err.message })
     }
   },
+
+  /**
+   *
+   * @api {get} /search/drivetime Drive time Search
+   * @apiName Search driveTime
+   * @apiGroup Searching
+   * @apiVersion  1.0.0
+   * @apiPermission User
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
+   *
+   * @apiQuery {Number} long Enter longitude of the given point
+   * @apiQuery {Number} lat Enter latitude of the given point
+   * @apiQuery {Number} range Enter range in terms of meters
+   * @apiSuccessExample {json} Success-Response:200
+   * {
+        "error": false,
+        "regions": [
+          {}
+        ]
+   *  }
+  */
 
   async driveTime(req, res) {
     try {
@@ -47,6 +90,25 @@ module.exports = {
     }
   },
 
+  /**
+   *
+   * @api {get} /search/msa Search msa
+   * @apiName Search msa
+   * @apiGroup Searching
+   * @apiVersion  1.0.0
+   * @apiPermission User
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
+   *
+   * @apiParam {Number} geoId Enter geoId of the given point
+   *
+   * @apiSuccessExample {json} Success-Response:200
+   * {
+        "error": false,
+        "regions": [
+          {}
+        ]
+   *  }
+  */
   async msa(req, res) {
     const { geoId } = req.params
     try {
@@ -54,6 +116,7 @@ module.exports = {
         geoId,
         geographicLevel: "MSA"
       }).exec()
+
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
       const regionsWithinMsa = await Region.find({
@@ -74,6 +137,25 @@ module.exports = {
     }
   },
 
+  /**
+   *
+   * @api {get} /search/zipcode Search zipcode
+   * @apiName Search zipcode
+   * @apiGroup Searching
+   * @apiVersion  1.0.0
+   * @apiPermission User
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
+   *
+   * @apiParam {Number} geoId Enter geoId of the given point
+   *
+   * @apiSuccessExample {json} Success-Response:200
+   * {
+        "error": false,
+        "regions": [
+          {}
+        ]
+   *  }
+  */
   async zipcode(req, res) {
     const { geoId } = req.params
     try {
@@ -104,13 +186,33 @@ module.exports = {
     }
   },
 
+  /**
+   * @api {get} /regions Regions Search
+   * @apiName regionSearch
+   * @apiGroup Searching
+   * @apiVersion  1.0.0
+   * @apiPermission User
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
+   *
+   * @apiQuery {Number} geoId Enter geoId of the given point
+   * @apiQuery {Number}[page=1] Enter page number, default value is 1
+   * @apiQuery {Number}[size=10] Enter size of data, default value is 10
+   *
+   * @apiSuccessExample {json} Success-Response:200
+   *   {
+            "error": false,
+            "regions": [
+            {}
+            ]
+    */
+
   async regions(req, res) {
     const {
-      geographicLevel, name
+      geographicLevel, name, page = 1, size = 10
     } = req.query
 
     try {
-      if (name.trim() === "") {
+      if (typeof name !== "string" || name.trim() === "") {
         return res.status(400).json({ error: true, message: "Field 'name' not valid format!!!" })
       }
       const query = { $text: { $search: name } }
@@ -124,6 +226,8 @@ module.exports = {
       }
 
       const paginationOptions = {
+        page,
+        limit: size,
         sort: { _id: -1 }
       }
       const { docs } = await Region.paginate(
@@ -142,6 +246,25 @@ module.exports = {
     }
   },
 
+  /**
+   *
+   * @api {get} /search/point Point Search
+   * @apiName point radius
+   * @apiGroup Searching
+   * @apiVersion  1.0.0
+   * @apiPermission User
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
+   *
+   * @apiQuery {Number} long Enter longitude of the given point
+   * @apiQuery {Number} lat Enter latitude of the given point
+   * @apiSuccessExample {json} Success-Response:200
+   * {
+        "error": false,
+        "region": [
+          {}
+        ]
+   *  }
+  */
   async point(req, res) {
     const { long, lat } = req.query
 
@@ -170,7 +293,7 @@ module.exports = {
           },
         },
       }).exec()
-      return res.status(200).json({ error: false, data: searchRegionData })
+      return res.status(200).json({ error: false, regions: searchRegionData })
     } catch (error) {
       return res.status(500).json({ message: "Server error" })
     }
@@ -179,21 +302,22 @@ module.exports = {
   async customfile(req, res) {
     try {
       const rdocs = req.file
+      console.log("rdocs ==> ", rdocs)
       if (rdocs.originalname.split(".").filter(Boolean).slice(1).join(".") !== "shp") {
         await rimraf(rdocs.path)
         return res.status(400).json({ error: true, message: "Only .shp file extension support" })
       }
-      // if (process.env.SHAPE_RESTORE_SHX === "YES") {
-      //   const stdout = await execa("ogr2ogr", ["-f", "GeoJSON", `/home/ai/DemographicsAPI/public/geojsonoutput/op-${new Date().getTime()}.geojson`, `/home/ai/DemographicsAPI/public/uploads/rdoc/${rdocs.rdoc}`])
-      //   console.log("stdout ==> ", stdout)
-      // }
+      if (process.env.SHAPE_RESTORE_SHX === "YES") {
+        const stdout = await execa("ogr2ogr", ["-f", "GeoJSON", `public/geojsonoutput/op-${new Date().getTime()}.geojson`, `public/uploads/rdoc/${rdocs.rdoc}`])
+        // console.log("stdout ==> ", stdout)
+      }
       const output = `/home/ai/DemographicsAPI/public/uploads/rdoc/${rdocs.rdoc}`
-      console.log("output ==> ", output)
+      // console.log("output ==> ", output)
       return res.status(200).json({ error: true, message: "File inserted successfully" })
       // let { data } = await ogr2ogr("/public/upload/rdoc/to/spatial/file")
       // console.log(data)
     } catch (error) {
-      console.log("error ==> ", error)
+      // console.log("error ==> ", error)
       return res.status(500).json({ error: true, message: error.message })
     }
   },
