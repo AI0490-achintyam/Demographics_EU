@@ -13,7 +13,7 @@ const RegionSchema = new mongoose.Schema({
   },
   // _censusdata: {
   //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "Census",
+  //   ref: Census,
   // },
   // new fields-------------
   state: {
