@@ -17,31 +17,19 @@ test.afterEach(teardownFixtures)
 test.beforeEach(async (t) => {
   // eslint-disable-next-line no-param-reassign
   t.context.query = {
-    long: -84.091998,
-    lat: 30.455749,
-    rad: 1,
+    long: 88.30601613954104,
+    lat: 22.58074787234567,
+    rad: 155,
   }
   // eslint-disable-next-line no-param-reassign
   t.context.invalidquery = {
   }
 })
 
-// const responseSchema = Joi.array().items(Joi.object().keys({
-//   isActiveStatus: Joi.boolean(),
-//   _updatedBy: [Joi.string(), Joi.allow(null)],
-//   _id: Joi.string(),
-//   longitude: Joi.string(),
-//   latitude: Joi.string(),
-//   _createdBy: Joi.string(),
-//   id: Joi.string()
-// }))
-
 test.serial("radius.get: Verify response after entering valid data in longitude,latitude and radius", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
-  // const { error } = responseSchema.validate(body.regions, { abortEarly: false })
-  // t.true(error === undefined, error?.message)
   t.is(status, 200)
   t.false(body.error)
 })
