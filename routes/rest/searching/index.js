@@ -1,6 +1,7 @@
 const execa = require("execa")
 const { rimraf } = require("rimraf")
 const fs = require("fs")
+const Openrouteservice = require("openrouteservice-js")
 const Region = require("../../../models/regions")
 
 module.exports = {
@@ -85,8 +86,30 @@ module.exports = {
 
   async driveTime(req, res) {
     try {
-      return res.status(501).send("Not Implemented!")
+      const { long, lat, range } = req.query
+      console.log("long ==> ", Number(long), typeof long)
+      // const Isochrones = new Openrouteservice.Isochrones({ api_key: process.env.DIRECTION_API_KEY })
+      const Isochrones = new Openrouteservice.Isochrones({ api_key: process.env.DIRECTION_API_KEY, host: "http://localhost:8080/ors" })
+      console.log("Isochrones ==> ", Isochrones)
+      const { features } = await Isochrones.calculate({
+        locations: [[Number(long), Number(lat)]],
+        profile: "driving-car",
+        range: [Number(range)],
+        range_type: "time"
+      })
+      console.log("features ==> ", features)
+
+      const regions = await Region.find({
+        centroid: {
+          $geoWithin: {
+            $geometry: features[0].geometry
+          }
+        }
+      })
+
+      return res.status(200).json({ error: true, regions })
     } catch (error) {
+      // console.log('--------', JSON.stringify(error))
       return res.status(500).json({ error: true, message: error.message })
     }
   },
@@ -229,6 +252,7 @@ module.exports = {
       const paginationOptions = {
         page,
         limit: size,
+        populate: [{ path: "_census" }],
         sort: { _id: -1 }
       }
       const { docs } = await Region.paginate(

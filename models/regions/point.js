@@ -12,7 +12,7 @@ PointRegionSchema.set("toObject", { virtuals: true })
 
 // eslint-disable-next-line prefer-arrow-callback
 PointRegionSchema.post("validate", function (error, doc, next) {
-  console.log("error ==> ", error)
+  // console.log("error ==> ", error)
   if (error?.errors["geometry.coordinates.0"].name === "CastError") {
     return next(new Error("Coordinates must be specified as a numeric array of length 2"))
   }
@@ -20,7 +20,7 @@ PointRegionSchema.post("validate", function (error, doc, next) {
 })
 // eslint-disable-next-line prefer-arrow-callback
 PointRegionSchema.post("save", function (error, doc, next) {
-  console.log("11111111111 ==> ", error.name)
+  // console.log("11111111111 ==> ", error.name)
   if (error.name === "MongoServerError") {
     return next(new Error("Invalid Point Data"))
   }
