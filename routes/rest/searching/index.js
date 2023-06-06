@@ -42,8 +42,8 @@ module.exports = {
         return res.status(400).json({ error: true, message: "Field 'lat' not valid format!!!" })
       }
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(rad)) {
-        return res.status(400).json({ error: true, message: "Field 'rad' not valid format!!!" })
+      if (isNaN(rad) || rad < 0) {
+        return res.status(400).json({ error: true, message: "Field 'rad' must be non-negative number!!!" })
       }
       // validation end..........
 
