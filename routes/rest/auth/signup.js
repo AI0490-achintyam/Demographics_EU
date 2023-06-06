@@ -5,43 +5,41 @@ module.exports = {
    *
    * @api {post} /signup User registration
    * @apiName userRegistration
-   * @apiGroup Auth
+   * @apiGroup User
    * @apiVersion  1.0.0
    * @apiPermission Public
    *
+   * @apiParam (Request Body) {email} email Enter email in proper format
+   * @apiParam (Request Body) {String} phone Enter phone number
+   * @apiParam (Request Body) {Object} name Enter name is a object type
+   * @apiParam (Request Body) {String} name.first Enter first name is a string type
+   * @apiParam (Request Body) {String} name.last Enter last name is a string type
+   * @apiParam (Request Body) {String} password Enter password
    *
-   * @apiBody  {String} email
-   * @apiBody  {String} phone
-   * @apiBody  {Object} name
-   * @apiBody  {String} password
-   *
-   * @apiSuccess (200) {json} name description
    *
    * @apiParamExample  {json} Request-Example:
    * {
-   *     "email" : "myEmail@logic-square.com",
-   *     "phone" : "00000000000",
+   *     "email" : "achintya@aggregateintelligence.in",
+   *     "phone" : "9614450410",
    *     "name"  :{
-   *          "first":"Jhon",
-   *          "last" :"Doe"
+   *          "first":"Achintya",
+   *          "last" :"Mondal"
    *      }
    * }
    *
    *
-   * @apiSuccessExample {json} Success-Response:
+   * @apiSuccessExample {json} Success-Response:200
    * {
    *     "error" : false,
    *     "user" : {
-   *          "email" : "myEmail@logic-square.com",
-   *          "phone" : "00000000000",
+   *          "email" : "achintya@aggregateintelligence.in",
+   *          "phone" : "9614450410",
    *          "name"  :{
-   *              "first":"Jhon",
-   *              "last" :"Doe"
+   *              "first":"Achintya",
+   *              "last" :"Mondal"
    *           }
    *      }
    * }
-   *
-   *
    */
   async post(req, res) {
     try {
@@ -51,12 +49,26 @@ module.exports = {
       if (email === undefined) {
         return res
           .status(400)
-          .json({ error: true, reason: "Missing manadatory field `email`" })
+          .json({ error: true, reason: "Field 'email' is mandatroy !!!" })
       }
-      if (name === undefined || name.first === undefined) {
+      if (name === undefined || typeof (name.first) !== "string" || name.first.trim() === "") {
         return res
           .status(400)
-          .json({ error: true, reason: "Please specify First Name!" })
+          .json({ error: true, reason: "Field 'first' must be valid string !!!" })
+      }
+      if (name === undefined || typeof (name.last) !== "string" || name.last.trim() === "") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "Field 'last' must be valid string !!!" })
+      }
+      if (typeof (password) !== "string" || password.trim() === "") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "Field 'password' must be valid string !!!" })
+      }
+      const emailCheck = await User.findOne({ email })
+      if (emailCheck !== null) {
+        return res.status(400).json({ error: true, reason: "Email Id already exist" })
       }
       let user = await User.create({
         email,
@@ -68,7 +80,7 @@ module.exports = {
       delete user.password
       delete user.forgotpassword
 
-      return res.json({ error: false, user })
+      return res.status(200).json({ error: false, user })
     } catch (err) {
       return res.status(500).json({ error: true, reason: err.message })
     }
