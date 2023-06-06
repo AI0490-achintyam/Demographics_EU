@@ -34,12 +34,12 @@ module.exports = {
       // validation start.........
 
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(long)) || long === null) {
-        return res.status(400).json({ error: true, message: "Field 'long' not valid format!!!" })
+      if (isNaN(String(long)) || long === null || long > 180 || long < -180) {
+        return res.status(400).json({ error: true, message: "Field 'long' not valid !!!" })
       }
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(lat)) || lat === null) {
-        return res.status(400).json({ error: true, message: "Field 'lat' not valid format!!!" })
+      if (isNaN(String(lat)) || lat === null || lat > 90 || lat < -90) {
+        return res.status(400).json({ error: true, message: "Field 'lat' not valid !!!" })
       }
       // eslint-disable-next-line no-restricted-globals
       if (isNaN(String(rad)) || rad < 0 || rad === null) {
@@ -135,6 +135,8 @@ module.exports = {
   */
   async msa(req, res) {
     const { geoId } = req.params
+    console.log("geoId ==> ", geoId)
+
     try {
       const msa = await Region.findOne({
         geoId,
@@ -144,11 +146,7 @@ module.exports = {
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
       const regionsWithinMsa = await Region.find({
-        geographicLevel: {
-          $in: [
-            "Tract", "Block Group", "Blocks"
-          ]
-        },
+        geographicLevel: "MSA",
         centroid: {
           $geoWithin: {
             $geometry: msa.toObject().geometry
@@ -182,12 +180,14 @@ module.exports = {
   */
   async zipcode(req, res) {
     const { geoId } = req.params
+
     try {
       const zipcode = await Region.findOne({
         geoId,
         geographicLevel: "Zipcode"
 
       }).exec()
+
       if (zipcode === null) return res.status(400).json({ error: true, message: `No such Zipcode with geo id ${geoId}` })
 
       const regionsWithinZipcode = await Region.find({
@@ -200,7 +200,7 @@ module.exports = {
         },
         centroid: {
           $geoWithin: {
-            $geometry: zipcode.geometry
+            $geometry: zipcode.toObject().geometry
           }
         }
       }).exec()
@@ -258,7 +258,7 @@ module.exports = {
       const { docs } = await Region.paginate(
         query,
         paginationOptions
-      ).exec()
+      )
 
       return res.status(200).json(
         {
@@ -297,12 +297,12 @@ module.exports = {
       // validation start.........
 
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(long)) {
-        return res.status(400).json({ error: true, message: "Field 'long' not valid format!!!" })
+      if (isNaN(String(long)) || long > 180 || long < -180 || long === null) {
+        return res.status(400).json({ error: true, message: "Field 'long' not valid !!!" })
       }
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(lat)) {
-        return res.status(400).json({ error: true, message: "Field 'lat' not valid format!!!" })
+      if (isNaN(String(lat)) || lat > 90 || lat < -90 || lat === null) {
+        return res.status(400).json({ error: true, message: "Field 'lat' not valid !!!" })
       }
       // validation end
 
