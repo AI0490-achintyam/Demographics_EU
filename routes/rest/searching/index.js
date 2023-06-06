@@ -49,7 +49,7 @@ module.exports = {
 
       const regionData = await Region.find(
         {
-          geometry: {
+          centroid: {
             $nearSphere: {
               $geometry: { type: "Point", coordinates: [parseFloat(long), parseFloat(lat)] },
               $maxDistance: parseFloat(rad),
