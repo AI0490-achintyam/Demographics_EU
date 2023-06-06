@@ -4,8 +4,8 @@ const sinon = require("sinon")
 const {
   runRouteHandler, setupMongo, teardownMongo, setupFixtures, teardownFixtures
 } = require("../../../../_utils")
-const { get } = require("../../../../../routes/rest/users")
-const Region = require("../../../../../models/user")
+const { get } = require("../../../../../routes/rest/region/index")
+const Region = require("../../../../../models/regions/index")
 
 /** Setup & Teardown code (COMMON) */
 test.before(setupMongo)

@@ -22,9 +22,9 @@ test.beforeEach(async (t) => {
       first: "Rohit",
       last: "Santra"
     },
-    phoneNumber: "9038826507",
+    phone: "9038826507",
     email: "laxman@test.com",
-    isActiveStatus: true,
+    isActive: true,
   }
   // eslint-disable-next-line no-param-reassign
   t.context.validuserDataId = "64645fc10adf19295e261088"
@@ -43,8 +43,8 @@ test.beforeEach(async (t) => {
 //   _id: Joi.string(),
 //   userName: Joi.string(),
 //   email: Joi.string(),
-//   phoneNumber: Joi.string(),
-//   isActiveStatus: Joi.boolean(),
+//   phone: Joi.string(),
+//   isActive: Joi.boolean(),
 //   _createdBy: Joi.string(),
 //   _updatedBy: Joi.string(),
 //   createdAt: Joi.string(),
@@ -66,9 +66,9 @@ test.serial("User.put: Verify response after entering valid user id", async (t) 
   // t.true(error === undefined, error?.message)
   t.is(body.user.name.first, t.context.reqbody.name.first)
   t.is(body.user.name.last, t.context.reqbody.name.last)
-  t.is(body.user.phoneNumber, t.context.reqbody.phoneNumber)
+  t.is(body.user.phone, t.context.reqbody.phone)
   t.is(body.user.email, t.context.reqbody.email)
-  t.is(body.user.isActiveStatus, t.context.reqbody.isActiveStatus)
+  t.is(body.user.isActive, t.context.reqbody.isActive)
   t.is(body.user._updatedBy, t.context.authId._id)
   t.is(status, 200)
   t.false(body.error)
@@ -483,106 +483,106 @@ test.serial("User.put: Verify response after entering boolean value in name", as
   t.true(body.error)
 })
 
-test.serial("User.put: Verify response after entering integer value in phoneNumber", async (t) => {
+test.serial("User.put: Verify response after entering integer value in phone", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, phoneNumber: 1 },
+    body: { ...t.context.reqbody, phone: 1 },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.put: Verify response after entering blank value in phoneNumber", async (t) => {
+test.serial("User.put: Verify response after entering blank value in phone", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, phoneNumber: " " },
+    body: { ...t.context.reqbody, phone: " " },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.put: Verify response after entering array value in phoneNumber", async (t) => {
+test.serial("User.put: Verify response after entering array value in phone", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, phoneNumber: ["9038826507"] },
+    body: { ...t.context.reqbody, phone: ["9038826507"] },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.put: Verify response after entering invalid value in phoneNumber", async (t) => {
+test.serial("User.put: Verify response after entering invalid value in phone", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, phoneNumber: "X" },
+    body: { ...t.context.reqbody, phone: "X" },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.put: Verify response after entering extra space before and after the phoneNumber", async (t) => {
+test.serial("User.put: Verify response after entering extra space before and after the phone", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, phoneNumber: "  9038826507  " },
+    body: { ...t.context.reqbody, phone: "  9038826507  " },
     auth: t.context.authId
   })
-  const newphoneNumber = "9038826507"
-  t.is(body.user.phoneNumber, newphoneNumber)
+  const newphone = "9038826507"
+  t.is(body.user.phone, newphone)
   t.is(status, 200)
   t.false(body.error)
 })
 
-test.serial("User.put: Verify response after entering undefined value in phoneNumber", async (t) => {
+test.serial("User.put: Verify response after entering undefined value in phone", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, phoneNumber: undefined },
+    body: { ...t.context.reqbody, phone: undefined },
     auth: t.context.authId
   })
   t.is(status, 200)
   t.false(body.error)
 })
 
-test.serial("User.put: Verify response after entering null value in phoneNumber", async (t) => {
+test.serial("User.put: Verify response after entering null value in phone", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, phoneNumber: null },
+    body: { ...t.context.reqbody, phone: null },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.put: Verify response after entering boolean value in phoneNumber", async (t) => {
+test.serial("User.put: Verify response after entering boolean value in phone", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, phoneNumber: true },
+    body: { ...t.context.reqbody, phone: true },
     auth: t.context.authId
   })
   t.is(status, 400)
@@ -695,80 +695,80 @@ test.serial("User.put: Verify response after entering boolean value in email", a
   t.true(body.error)
 })
 
-test.serial("User.put: Verify response after entering integer value in isActiveStatus", async (t) => {
+test.serial("User.put: Verify response after entering integer value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, isActiveStatus: 1 },
+    body: { ...t.context.reqbody, isActive: 1 },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.put: Verify response after entering string value in isActiveStatus", async (t) => {
+test.serial("User.put: Verify response after entering string value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, isActiveStatus: "true" },
+    body: { ...t.context.reqbody, isActive: "true" },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.put: Verify response after entering array value in isActiveStatus", async (t) => {
+test.serial("User.put: Verify response after entering array value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, isActiveStatus: ["true"] },
+    body: { ...t.context.reqbody, isActive: ["true"] },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.put: Verify response after entering false value in isActiveStatus", async (t) => {
+test.serial("User.put: Verify response after entering false value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, isActiveStatus: false },
+    body: { ...t.context.reqbody, isActive: false },
     auth: t.context.authId
   })
-  const newisActiveStatus = false
-  t.is(body.user.isActiveStatus, newisActiveStatus)
+  const newisActive = false
+  t.is(body.user.isActive, newisActive)
   t.is(status, 200)
   t.false(body.error)
 })
 
-test.serial("User.put: Verify response after entering undefined value in isActiveStatus", async (t) => {
+test.serial("User.put: Verify response after entering undefined value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, isActiveStatus: undefined },
+    body: { ...t.context.reqbody, isActive: undefined },
     auth: t.context.authId
   })
   t.is(status, 200)
   t.false(body.error)
 })
 
-test.serial("User.put: Verify response after entering null value in isActiveStatus", async (t) => {
+test.serial("User.put: Verify response after entering null value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(put, {
     method: "PUT",
     params: {
       id: t.context.validuserDataId
     },
-    body: { ...t.context.reqbody, isActiveStatus: null },
+    body: { ...t.context.reqbody, isActive: null },
     auth: t.context.authId
   })
   t.is(status, 400)

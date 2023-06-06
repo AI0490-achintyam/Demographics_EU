@@ -62,16 +62,16 @@ test.serial("User.delete: Verify response after entering invalid user id", async
   t.false(body.error)
 })
 
-// test.serial("User.delete: Verify response after getting server error", async (t) => {
-//   const stub = sinon.stub(User, "updateOne").throws(new Error("Server Error"))
-//   const { status, body } = await runRouteHandler(del, {
-//     method: "DELETE",
-//     params: {
-//       id: t.context.validuserDataId
-//     },
-//     auth: t.context.authId
-//   })
-//   t.is(status, 500)
-//   t.true(body.error)
-//   stub.restore()
-// })
+test.serial("User.delete: Verify response after getting server error", async (t) => {
+  const stub = sinon.stub(User, "deleteOne").throws(new Error("Server Error"))
+  const { status, body } = await runRouteHandler(del, {
+    method: "DELETE",
+    params: {
+      id: t.context.validuserDataId
+    },
+    auth: t.context.authId
+  })
+  t.is(status, 500)
+  t.true(body.error)
+  stub.restore()
+})
