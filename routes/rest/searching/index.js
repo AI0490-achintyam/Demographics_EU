@@ -97,6 +97,7 @@ module.exports = {
         range: [Number(range)],
         range_type: "time"
       })
+      console.log("features ==> ", features)
 
       const regions = await Region.find({
         centroid: {
@@ -106,10 +107,10 @@ module.exports = {
         }
       })
 
-      return res.status(200).json({ success: true, regions })
+      return res.status(200).json({ error: true, regions })
     } catch (error) {
       // console.log('--------', JSON.stringify(error))
-      return res.status(400).json({ error })
+      return res.status(500).json({ error: true, message: error.message })
     }
   },
 

@@ -30,7 +30,7 @@ module.exports = {
       })
 
       if (!regionData) {
-        return res.status(404).send("Region not found")
+        return res.status(400).json({ error: true, reason: "Region not found" })
       }
       return res.status(200).json({ error: false, region: regionData })
     } catch (error) {
