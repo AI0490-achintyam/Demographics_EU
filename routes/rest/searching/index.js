@@ -34,15 +34,15 @@ module.exports = {
       // validation start.........
 
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(long)) {
+      if (isNaN(String(long)) || long === null) {
         return res.status(400).json({ error: true, message: "Field 'long' not valid format!!!" })
       }
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(lat)) {
+      if (isNaN(String(lat)) || lat === null) {
         return res.status(400).json({ error: true, message: "Field 'lat' not valid format!!!" })
       }
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(rad) || rad < 0) {
+      if (isNaN(String(rad)) || rad < 0 || rad === null) {
         return res.status(400).json({ error: true, message: "Field 'rad' must be non-negative number!!!" })
       }
       // validation end..........
@@ -105,7 +105,7 @@ module.exports = {
             $geometry: features[0].geometry
           }
         }
-      })
+      }).exec()
 
       return res.status(200).json({ error: true, regions })
     } catch (error) {
@@ -258,7 +258,7 @@ module.exports = {
       const { docs } = await Region.paginate(
         query,
         paginationOptions
-      )
+      ).exec()
 
       return res.status(200).json(
         {
