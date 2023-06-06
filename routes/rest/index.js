@@ -25,26 +25,25 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage })
 
-// const checkJwt = expressjwt({ secret: process.env.SECRET, algorithms: ["HS256"] }) // the JWT auth check middleware
+const checkJwt = expressjwt({ secret: process.env.SECRET, algorithms: ["HS256"] }) // the JWT auth check middleware
 
-const login = require("./auth")
-// const signup = require("./auth/signup")
+const login = require("./auth/index")
+const signup = require("./auth/signup")
 // const forgotpassword = require("./auth/password")
-const users = require("./users")
+// const users = require("./users")
 
 const searching = require("./searching")
 const region = require("./region")
 const census = require("./census")
 const references = require("./references")
-// const geoJsonmiddleware = require("../middleware/geoJsonMiddleware")
-// const shpToGeojsonmiddleware = require("../middleware/shpToGeojsonmiddleware")
 
+router.post("/signup", signup.post) // UNAUTHENTICATED
 router.post("/login", login.post) // UNAUTHENTICATED
-// router.post("/signup", signup.post) // UNAUTHENTICATED
+
+router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
+
 // router.post("/forgotpassword", forgotpassword.startWorkflow) // UNAUTHENTICATED; AJAX
 // router.post("/resetpassword", forgotpassword.resetPassword) // UNAUTHENTICATED; AJAX
-
-// router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 
 // router.get("/users", users.find)
 // router.get("/user/:id", users.get)
