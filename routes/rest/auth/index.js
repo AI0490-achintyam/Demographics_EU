@@ -7,40 +7,36 @@ module.exports = {
    *
    * @api {post} /login User login
    * @apiName userLogin
-   * @apiGroup Auth
+   * @apiGroup User
    * @apiVersion  1.0.0
-   * @apiPermission Public
+   * @apiPermission user
    *
-   *
-   * @apiBody  {String} handle (mobile / email)
-   * @apiBody  {String} password user's password
-   *
-   * @apiSuccess (200) {json} name description
+   * @apiBody  {String} handle Enter user's email
+   * @apiBody  {String} password Enter user's password
    *
    * @apiParamExample  {json} Request-Example:
    * {
-   *     "handle" : "myEmail@logic-square.com",
-   *     "password" : "myNewPassword"
+   *     "handle" : "achintya@aggregateintelligence.in",
+   *     "password" : "123456"
    * }
    *
-   *
-   * @apiSuccessExample {json} Success-Response:
+   * @apiSuccessExample {json} Success-Response:200
    * {
    *     "error" : false,
-   *     "handle" : "myEmail@logic-square.com",
-   *     "token": "authToken.abc.xyz"
+   *     "handle" : "achintya@aggregateintelligence.in",
+   *     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0N2VlYTQxODYzZmJiYmNkMGM0OGJlNCIsIl9pZCI6IjY0N2VlYTQxODYzZmJiYmNkMGM0OGJlNCIsImZ1bGxOYW1lIjoiQWNoaW50eWEgTW9uZGFsIiwiZW1haWwiOiJnb3BhbEBhZ2dyZWdhdGVpbnRlbGxpZ2VuY2UuaW4iLCJwaG9uZSI6Ijk2MTQ0NTA0MTAiLCJpYXQiOjE2ODYwMzk0OTksImV4cCI6MTY4ODYzMTQ5OX0.LL_biJnTVu1UNO5cP4pFokFSqSjpkOkzoxc9tHgMVX"
    * }
-   *
-   *
    */
+
   async post(req, res) {
     try {
       // const { type } = req.params
       const { handle, password } = req.body
+
       if (handle === undefined || password === undefined) {
         return res.status(400).json({
           error: true,
-          reason: "Fields `handle` and `password` are mandatory"
+          reason: "Fields 'handle' or 'password' are mandatory"
         })
       }
       const user = await User.findOne({
