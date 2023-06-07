@@ -1,6 +1,5 @@
 const mongoose = require("mongoose")
 const Reference = require("../../../models/reference")
-const reference = require("../../../models/reference")
 
 module.exports = {
 
