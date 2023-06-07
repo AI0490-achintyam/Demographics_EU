@@ -56,7 +56,7 @@ module.exports = {
             }
           }
         },
-      ).exec()
+      ).populate({ path: "_census" }).exec()
       return res.status(200).json({ error: false, regions: regionData })
     } catch (err) {
       return res.status(500).json({ error: true, message: err.message })
