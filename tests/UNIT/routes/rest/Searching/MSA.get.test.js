@@ -54,7 +54,7 @@ test.serial("msa.get: Verify response after entering integer value in geoId ", a
 test.serial("msa.get: Verify response after entering invalid string value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     params: {
-      geoId: 100
+      geoId: "x"
     }
   })
   t.is(status, 400)

@@ -4,8 +4,8 @@ const sinon = require("sinon")
 const {
   runRouteHandler, setupMongo, teardownMongo, setupFixtures, teardownFixtures
 } = require("../../../../_utils")
-const { get } = require("../../../../../routes/rest/users")
-const term = require("../../../../../models/user")
+const { regions: get } = require("../../../../../routes/rest/searching/index")
+const region = require("../../../../../models/regions/index")
 
 /** Setup & Teardown code (COMMON) */
 test.before(setupMongo)
@@ -17,30 +17,21 @@ test.afterEach(teardownFixtures)
 test.beforeEach(async (t) => {
   // eslint-disable-next-line no-param-reassign
   t.context.query = {
-    geographicLevel: "Country",
-    term: "India",
+    geographicLevel: "Zipcode",
+    term: "Indoor",
+    page: 1,
+    size: 10
   }
   // eslint-disable-next-line no-param-reassign
   t.context.invalidquery = {
   }
 })
 
-// const responseSchema = Joi.array().items(Joi.object().keys({
-//   isActiveStatus: Joi.boolean(),
-//   _updatedBy: [Joi.string(), Joi.allow(null)],
-//   _id: Joi.string(),
-//   geographicLevel: Joi.string(),
-//   latitude: Joi.string(),
-//   _createdBy: Joi.string(),
-//   id: Joi.string()
-// }))
-
-test.serial("regions.get: Verify response after entering valid data in geographicLevel and term", async (t) => {
+test.only("regions.get: Verify response after entering valid data in geographicLevel and term", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
-  // const { error } = responseSchema.validate(body.regions, { abortEarly: false })
-  // t.true(error === undefined, error?.message)
+  console.log(body)
   t.is(status, 200)
   t.false(body.error)
 })
@@ -198,7 +189,7 @@ test.serial("regions.get: Verify response after entering boolean value in term "
 })
 
 test.serial("regions.get: Verify response after getting server error", async (t) => {
-  const stub = sinon.stub(term, "find").throws(new Error("Server Error"))
+  const stub = sinon.stub(region, "find").throws(new Error("Server Error"))
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
