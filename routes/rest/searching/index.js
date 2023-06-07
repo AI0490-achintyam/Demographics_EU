@@ -9,7 +9,7 @@ module.exports = {
   /**
    *
    * @api {get} /search/radius Radius Search
-   * @apiName Search radius
+   * @apiName Radius Search
    * @apiGroup Searching
    * @apiVersion  1.0.0
    * @apiPermission User
@@ -65,8 +65,8 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/drivetime Drive time Search
-   * @apiName Search driveTime
+   * @api {get} /search/drivetime DriveTime Search
+   * @apiName DriveTime Search
    * @apiGroup Searching
    * @apiVersion  1.0.0
    * @apiPermission User
@@ -116,8 +116,8 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/msa Search msa
-   * @apiName Search msa
+   * @api {get} /search/msa MSA Search
+   * @apiName MSA Search
    * @apiGroup Searching
    * @apiVersion  1.0.0
    * @apiPermission User
@@ -135,7 +135,6 @@ module.exports = {
   */
   async msa(req, res) {
     const { geoId } = req.params
-    console.log("geoId ==> ", geoId)
 
     try {
       const msa = await Region.findOne({
@@ -152,7 +151,7 @@ module.exports = {
             $geometry: msa.toObject().geometry
           }
         }
-      }).exec()
+      }).populate({ path: "_census" }).exec()
       return res.status(200).json({ error: false, regions: regionsWithinMsa })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
@@ -161,8 +160,8 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/zipcode Search zipcode
-   * @apiName Search zipcode
+   * @api {get} /search/zipcode Zipcode Search
+   * @apiName Zipcode Search
    * @apiGroup Searching
    * @apiVersion  1.0.0
    * @apiPermission User
@@ -192,18 +191,13 @@ module.exports = {
 
       const regionsWithinZipcode = await Region.find({
 
-        geographicLevel: {
-          $in: [
-            "Tract", "Block Group", "Blocks"
-          ]
-
-        },
+        geographicLevel: "Zipcode",
         centroid: {
           $geoWithin: {
             $geometry: zipcode.toObject().geometry
           }
         }
-      }).exec()
+      }).populate({ path: "_census" }).exec()
       return res.status(200).json({ error: false, regions: regionsWithinZipcode })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
@@ -218,7 +212,8 @@ module.exports = {
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
    *
-   * @apiQuery {Number} geoId Enter geoId of the given point
+   * @apiQuery {Enum} geographicalLevel Enter geographicalLevel
+   * @apiQuery {String} term Enter name to search
    * @apiQuery {Number}[page=1] Enter page number, default value is 1
    * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
@@ -232,14 +227,14 @@ module.exports = {
 
   async regions(req, res) {
     const {
-      geographicLevel, name, page = 1, size = 10
+      geographicLevel, term, page = 1, size = 10
     } = req.query
 
     try {
-      if (typeof name !== "string" || name.trim() === "") {
-        return res.status(400).json({ error: true, message: "Field 'name' not valid format!!!" })
+      if (typeof term !== "string" || term.trim() === "") {
+        return res.status(400).json({ error: true, message: "Field 'term' not valid format!!!" })
       }
-      const query = { $text: { $search: name } }
+      const query = { $text: { $search: term } }
 
       if (geographicLevel !== undefined) {
         if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "msaType"].includes(geographicLevel)) {
@@ -274,7 +269,7 @@ module.exports = {
   /**
    *
    * @api {get} /search/point Point Search
-   * @apiName point radius
+   * @apiName point search
    * @apiGroup Searching
    * @apiVersion  1.0.0
    * @apiPermission User
@@ -317,7 +312,7 @@ module.exports = {
             $geometry: searchPoint
           },
         },
-      }).exec()
+      }).populate({ path: "_census" }).exec()
       return res.status(200).json({ error: false, regions: searchRegionData })
     } catch (error) {
       return res.status(500).json({ message: "Server error" })
@@ -326,7 +321,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/customfile Upload shape file
+   * @api {get} /search/customfile Shape file upload
    * @apiName shapeFile
    * @apiGroup Searching
    * @apiVersion  1.0.0
