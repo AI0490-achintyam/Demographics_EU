@@ -9,7 +9,7 @@ module.exports = {
   /**
    *
    * @api {get} /search/radius Radius Search
-   * @apiName Search radius
+   * @apiName Radius Search
    * @apiGroup Searching
    * @apiVersion  1.0.0
    * @apiPermission User
@@ -34,12 +34,12 @@ module.exports = {
       // validation start.........
 
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(long)) || long === null) {
-        return res.status(400).json({ error: true, message: "Field 'long' not valid format!!!" })
+      if (isNaN(String(long)) || long === null || long > 180 || long < -180) {
+        return res.status(400).json({ error: true, message: "Field 'long' not valid !!!" })
       }
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(lat)) || lat === null) {
-        return res.status(400).json({ error: true, message: "Field 'lat' not valid format!!!" })
+      if (isNaN(String(lat)) || lat === null || lat > 90 || lat < -90) {
+        return res.status(400).json({ error: true, message: "Field 'lat' not valid !!!" })
       }
       // eslint-disable-next-line no-restricted-globals
       if (isNaN(String(rad)) || rad < 0 || rad === null) {
@@ -56,7 +56,7 @@ module.exports = {
             }
           }
         },
-      ).exec()
+      ).populate({ path: "_census" }).exec()
       return res.status(200).json({ error: false, regions: regionData })
     } catch (err) {
       return res.status(500).json({ error: true, message: err.message })
@@ -65,8 +65,8 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/drivetime Drive time Search
-   * @apiName Search driveTime
+   * @api {get} /search/drivetime DriveTime Search
+   * @apiName DriveTime Search
    * @apiGroup Searching
    * @apiVersion  1.0.0
    * @apiPermission User
@@ -116,8 +116,8 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/msa Search msa
-   * @apiName Search msa
+   * @api {get} /search/msa MSA Search
+   * @apiName MSA Search
    * @apiGroup Searching
    * @apiVersion  1.0.0
    * @apiPermission User
@@ -135,6 +135,7 @@ module.exports = {
   */
   async msa(req, res) {
     const { geoId } = req.params
+
     try {
       const msa = await Region.findOne({
         geoId,
@@ -144,17 +145,13 @@ module.exports = {
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
       const regionsWithinMsa = await Region.find({
-        geographicLevel: {
-          $in: [
-            "Tract", "Block Group", "Blocks"
-          ]
-        },
+        geographicLevel: "MSA",
         centroid: {
           $geoWithin: {
             $geometry: msa.toObject().geometry
           }
         }
-      }).exec()
+      }).populate({ path: "_census" }).exec()
       return res.status(200).json({ error: false, regions: regionsWithinMsa })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
@@ -163,8 +160,8 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/zipcode Search zipcode
-   * @apiName Search zipcode
+   * @api {get} /search/zipcode Zipcode Search
+   * @apiName Zipcode Search
    * @apiGroup Searching
    * @apiVersion  1.0.0
    * @apiPermission User
@@ -182,28 +179,25 @@ module.exports = {
   */
   async zipcode(req, res) {
     const { geoId } = req.params
+
     try {
       const zipcode = await Region.findOne({
         geoId,
         geographicLevel: "Zipcode"
 
       }).exec()
+
       if (zipcode === null) return res.status(400).json({ error: true, message: `No such Zipcode with geo id ${geoId}` })
 
       const regionsWithinZipcode = await Region.find({
 
-        geographicLevel: {
-          $in: [
-            "Tract", "Block Group", "Blocks"
-          ]
-
-        },
+        geographicLevel: "Zipcode",
         centroid: {
           $geoWithin: {
-            $geometry: zipcode.geometry
+            $geometry: zipcode.toObject().geometry
           }
         }
-      }).exec()
+      }).populate({ path: "_census" }).exec()
       return res.status(200).json({ error: false, regions: regionsWithinZipcode })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
@@ -218,7 +212,8 @@ module.exports = {
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
    *
-   * @apiQuery {Number} geoId Enter geoId of the given point
+   * @apiQuery {Enum} geographicalLevel Enter geographicalLevel
+   * @apiQuery {String} term Enter name to search
    * @apiQuery {Number}[page=1] Enter page number, default value is 1
    * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
@@ -232,14 +227,14 @@ module.exports = {
 
   async regions(req, res) {
     const {
-      geographicLevel, name, page = 1, size = 10
+      geographicLevel, term, page = 1, size = 10
     } = req.query
 
     try {
-      if (typeof name !== "string" || name.trim() === "") {
-        return res.status(400).json({ error: true, message: "Field 'name' not valid format!!!" })
+      if (typeof term !== "string" || term.trim() === "") {
+        return res.status(400).json({ error: true, message: "Field 'term' not valid format!!!" })
       }
-      const query = { $text: { $search: name } }
+      const query = { $text: { $search: term } }
 
       if (geographicLevel !== undefined) {
         if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "msaType"].includes(geographicLevel)) {
@@ -258,7 +253,7 @@ module.exports = {
       const { docs } = await Region.paginate(
         query,
         paginationOptions
-      ).exec()
+      )
 
       return res.status(200).json(
         {
@@ -274,7 +269,7 @@ module.exports = {
   /**
    *
    * @api {get} /search/point Point Search
-   * @apiName point radius
+   * @apiName point search
    * @apiGroup Searching
    * @apiVersion  1.0.0
    * @apiPermission User
@@ -297,12 +292,12 @@ module.exports = {
       // validation start.........
 
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(long)) {
-        return res.status(400).json({ error: true, message: "Field 'long' not valid format!!!" })
+      if (isNaN(String(long)) || long > 180 || long < -180 || long === null) {
+        return res.status(400).json({ error: true, message: "Field 'long' not valid !!!" })
       }
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(lat)) {
-        return res.status(400).json({ error: true, message: "Field 'lat' not valid format!!!" })
+      if (isNaN(String(lat)) || lat > 90 || lat < -90 || lat === null) {
+        return res.status(400).json({ error: true, message: "Field 'lat' not valid !!!" })
       }
       // validation end
 
@@ -317,7 +312,7 @@ module.exports = {
             $geometry: searchPoint
           },
         },
-      }).exec()
+      }).populate({ path: "_census" }).exec()
       return res.status(200).json({ error: false, regions: searchRegionData })
     } catch (error) {
       return res.status(500).json({ message: "Server error" })
@@ -326,7 +321,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/customfile Upload shape file
+   * @api {get} /search/customfile Shape file upload
    * @apiName shapeFile
    * @apiGroup Searching
    * @apiVersion  1.0.0
