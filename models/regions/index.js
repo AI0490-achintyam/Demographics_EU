@@ -1,5 +1,6 @@
 const mongoose = require("mongoose")
 const mongoosePaginate = require("mongoose-paginate-v2")
+require("../census")
 
 const RegionSchema = new mongoose.Schema({
   geoId: {

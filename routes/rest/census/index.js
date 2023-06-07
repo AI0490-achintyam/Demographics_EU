@@ -29,7 +29,7 @@ module.exports = {
       if (!allCensusData) {
         return res.status(400).json({ error: true, message: "No such census data !!!" })
       }
-      return res.status(200).json({ error: true, census: allCensusData })
+      return res.status(200).json({ error: true, censusData: allCensusData })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }

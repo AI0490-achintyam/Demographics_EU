@@ -1,19 +1,18 @@
 const mongoose = require("mongoose")
 const Reference = require("../../../models/reference")
-const reference = require("../../../models/reference")
 
 module.exports = {
 
   /**
    *
-   * @api {get} /references/censusattributes Get Censusattributes
-   * @apiName getCensusattributes
+   * @api {get} /references/censusattributes Get CensusAttributes
+   * @apiName getCensusAttributes
    * @apiGroup References
    * @apiVersion  1.0.0
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiParam {Number} [variableId] Enter variableId
+   * @apiParam {Number} [Term] Enter variableId
    *
    * @apiSuccessExample {json} Success-Response:200
       {
@@ -36,13 +35,13 @@ module.exports = {
       }
   */
   async censusattributes(req, res) {
-    const { variableId, page = 1, size = 50 } = req.query
+    const { term, page = 1, size = 50 } = req.query
     try {
-      if (variableId !== undefined) {
-        if (typeof variableId !== "string") {
-          return res.status(400).json({ error: true, message: "field 'variableId' must be string" })
+      if (term !== undefined) {
+        if (typeof term !== "string") {
+          return res.status(400).json({ error: true, message: "field 'term' must be string" })
         }
-        const data = await Reference.findOne({ variableId })
+        const data = await Reference.findOne({ term })
         return res.status(200).json({ error: false, referenceData: data })
       }
 
@@ -67,6 +66,27 @@ module.exports = {
     }
   },
 
+  /**
+   *
+   * @api {get} /references/msa Get MSA
+   * @apiName getMsa
+   * @apiGroup References
+   * @apiVersion  1.0.0
+   * @apiPermission User
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
+   *
+   *
+   * @apiSuccessExample {json} Success-Response:200
+   * {
+        "error": false,
+        "msas": [
+          {
+            "name": "My MSA",
+            "geoid": "123456"
+          }
+        ]
+      }
+  */
   async msa(req, res) {
     try {
       return res.status(501).send("Not Implemented!")
@@ -74,6 +94,28 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message })
     }
   },
+
+  /**
+   *
+   * @api {get} /references/years Get Years
+   * @apiName getYears
+   * @apiGroup References
+   * @apiVersion  1.0.0
+   * @apiPermission User
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
+   *
+   *
+   * @apiSuccessExample {json} Success-Response:200
+   * {
+        "error": false,
+        "years": [
+          "2010",
+          "2012",
+          "2013",
+          "2014"
+        ]
+      }
+  */
   async years(req, res) {
     try {
       return res.status(501).send("Not Implemented!")
@@ -81,6 +123,28 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message })
     }
   },
+
+  /**
+   *
+   * @api {get} /references/forecastyears Get forecastYear
+   * @apiName getForecastYears
+   * @apiGroup References
+   * @apiVersion  1.0.0
+   * @apiPermission User
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
+   *
+   *
+   * @apiSuccessExample {json} Success-Response:200
+   * {
+        "error": false,
+        "years": [
+          "2010",
+          "2012",
+          "2013",
+          "2014"
+        ]
+      }
+  */
   async forecastYears(req, res) {
     try {
       return res.status(501).send("Not Implemented!")
