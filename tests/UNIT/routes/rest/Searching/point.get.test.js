@@ -4,8 +4,8 @@ const sinon = require("sinon")
 const {
   runRouteHandler, setupMongo, teardownMongo, setupFixtures, teardownFixtures
 } = require("../../../../_utils")
-const { get } = require("../../../../../routes/rest/users")
-const Point = require("../../../../../models/user")
+const { point: get } = require("../../../../../routes/rest/searching/index")
+const Point = require("../../../../../models/regions/index")
 
 /** Setup & Teardown code (COMMON) */
 test.before(setupMongo)
@@ -17,30 +17,18 @@ test.afterEach(teardownFixtures)
 test.beforeEach(async (t) => {
   // eslint-disable-next-line no-param-reassign
   t.context.query = {
-    longitude: -84.091998,
-    latitude: 30.455749,
+    long: 88.30677391559988,
+    lat: 22.58170767865049,
   }
   // eslint-disable-next-line no-param-reassign
   t.context.invalidquery = {
   }
 })
 
-// const responseSchema = Joi.array().items(Joi.object().keys({
-//   isActiveStatus: Joi.boolean(),
-//   _updatedBy: [Joi.string(), Joi.allow(null)],
-//   _id: Joi.string(),
-//   longitude: Joi.string(),
-//   latitude: Joi.string(),
-//   _createdBy: Joi.string(),
-//   id: Joi.string()
-// }))
-
 test.serial("point.get: Verify response after entering valid data in longitude,latitude", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
-  // const { error } = responseSchema.validate(body.regions, { abortEarly: false })
-  // t.true(error === undefined, error?.message)
   t.is(status, 200)
   t.false(body.error)
 })
@@ -49,13 +37,13 @@ test.serial("point.get: Verify response after entering invalid query", async (t)
   const { status, body } = await runRouteHandler(get, {
     query: t.context.invalidquery
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("point.get: Verify response after entering string value in longitude ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, longitude: "x" }
+    query: { ...t.context.query, long: "x" }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -63,31 +51,31 @@ test.serial("point.get: Verify response after entering string value in longitude
 
 test.serial("point.get: Verify response after entering array value in longitude ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, longitude: [-84.091998] }
+    query: { ...t.context.query, long: [88.30677391559988, 88.30677391559988] }
   })
-  t.is(status, 500)
+  t.is(status, 400)
   t.true(body.error)
 })
 
 test.serial("point.get: Verify response after entering undefined value in longitude ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, longitude: undefined }
+    query: { ...t.context.query, long: undefined }
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("point.get: Verify response after entering null value in longitude ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, longitude: null }
+    query: { ...t.context.query, long: null }
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("point.get: Verify response after entering boolean value in longitude ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, longitude: true }
+    query: { ...t.context.query, long: true }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -95,7 +83,7 @@ test.serial("point.get: Verify response after entering boolean value in longitud
 
 test.serial("point.get: Verify response after entering string value in latitude ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, latitude: "x" }
+    query: { ...t.context.query, lat: "x" }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -103,7 +91,7 @@ test.serial("point.get: Verify response after entering string value in latitude 
 
 test.serial("point.get: Verify response after entering array value in latitude ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, latitude: [30.455749] }
+    query: { ...t.context.query, lat: [22.58170767865049, 22.58170767865049] }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -111,7 +99,7 @@ test.serial("point.get: Verify response after entering array value in latitude "
 
 test.serial("point.get: Verify response after entering undefined value in latitude ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, latitude: undefined }
+    query: { ...t.context.query, lat: undefined }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -119,15 +107,15 @@ test.serial("point.get: Verify response after entering undefined value in latitu
 
 test.serial("point.get: Verify response after entering null value in latitude ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, latitude: null }
+    query: { ...t.context.query, lat: null }
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("point.get: Verify response after entering boolean value in latitude ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, latitude: true }
+    query: { ...t.context.query, lat: true }
   })
   t.is(status, 400)
   t.true(body.error)

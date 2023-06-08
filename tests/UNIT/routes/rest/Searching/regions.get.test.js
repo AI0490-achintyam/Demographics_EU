@@ -18,7 +18,7 @@ test.beforeEach(async (t) => {
   // eslint-disable-next-line no-param-reassign
   t.context.query = {
     geographicLevel: "Zipcode",
-    term: "Indoor",
+    term: "State",
     page: 1,
     size: 10
   }
@@ -27,11 +27,10 @@ test.beforeEach(async (t) => {
   }
 })
 
-test.only("regions.get: Verify response after entering valid data in geographicLevel and term", async (t) => {
+test.serial("regions.get: Verify response after entering valid data in geographicLevel and term", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
-  console.log(body)
   t.is(status, 200)
   t.false(body.error)
 })
@@ -40,8 +39,8 @@ test.serial("regions.get: Verify response after entering invalid query", async (
   const { status, body } = await runRouteHandler(get, {
     query: t.context.invalidquery
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("regions.get: Verify response after entering State in geographicLevel", async (t) => {
@@ -70,7 +69,7 @@ test.serial("regions.get: Verify response after entering Tract in geographicLeve
 
 test.serial("regions.get: Verify response after entering Block Groups in geographicLevel", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, geographicLevel: "Block Groups" }
+    query: { ...t.context.query, geographicLevel: "Block Group" }
   })
   t.is(status, 200)
   t.false(body.error)
@@ -120,7 +119,7 @@ test.serial("regions.get: Verify response after entering array value in geograph
   const { status, body } = await runRouteHandler(get, {
     query: { ...t.context.query, geographicLevel: ["Country"] }
   })
-  t.is(status, 500)
+  t.is(status, 400)
   t.true(body.error)
 })
 
@@ -128,16 +127,16 @@ test.serial("regions.get: Verify response after entering undefined value in geog
   const { status, body } = await runRouteHandler(get, {
     query: { ...t.context.query, geographicLevel: undefined }
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("regions.get: Verify response after entering null value in geographicLevel ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: { ...t.context.query, geographicLevel: null }
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("regions.get: Verify response after entering boolean value in geographicLevel ", async (t) => {
@@ -160,7 +159,7 @@ test.serial("regions.get: Verify response after entering array value in term ", 
   const { status, body } = await runRouteHandler(get, {
     query: { ...t.context.query, term: ["x"] }
   })
-  t.is(status, 500)
+  t.is(status, 400)
   t.true(body.error)
 })
 
@@ -168,16 +167,16 @@ test.serial("regions.get: Verify response after entering undefined value in term
   const { status, body } = await runRouteHandler(get, {
     query: { ...t.context.query, term: undefined }
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("regions.get: Verify response after entering null value in term ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: { ...t.context.query, term: null }
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("regions.get: Verify response after entering boolean value in term ", async (t) => {
