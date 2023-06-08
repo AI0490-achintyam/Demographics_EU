@@ -87,17 +87,16 @@ module.exports = {
   async driveTime(req, res) {
     try {
       const { long, lat, range } = req.query
-      console.log("long ==> ", Number(long), typeof long)
+
       // const Isochrones = new Openrouteservice.Isochrones({ api_key: process.env.DIRECTION_API_KEY })
       const Isochrones = new Openrouteservice.Isochrones({ api_key: process.env.DIRECTION_API_KEY, host: "http://localhost:8080/ors" })
-      console.log("Isochrones ==> ", Isochrones)
+
       const { features } = await Isochrones.calculate({
         locations: [[Number(long), Number(lat)]],
         profile: "driving-car",
         range: [Number(range)],
         range_type: "time"
       })
-      console.log("features ==> ", features)
 
       const regions = await Region.find({
         centroid: {
