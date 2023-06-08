@@ -311,9 +311,9 @@ module.exports = {
           },
         },
       }).populate({ path: "_census" }).exec()
-      return res.status(200).json({ error: false, regions: searchRegionData })
+      return res.status(200).json({ error: false, point: searchRegionData })
     } catch (error) {
-      return res.status(500).json({ message: "Server error" })
+      return res.status(500).json({ error: true, message: error.message })
     }
   },
 
