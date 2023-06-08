@@ -236,12 +236,10 @@ module.exports = {
       }
       const query = { $text: { $search: term } }
 
-      if (geographicLevel !== undefined) {
-        if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "msaType"].includes(geographicLevel)) {
-          query.geographicLevel = geographicLevel
-        } else {
-          return res.status(400).json({ error: true, message: "Field 'geographicLevel' not found !!!" })
-        }
+      if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "msaType"].includes(geographicLevel)) {
+        query.geographicLevel = geographicLevel
+      } else {
+        return res.status(400).json({ error: true, message: "Field 'geographicLevel' not found !!!" })
       }
 
       const paginationOptions = {
