@@ -87,17 +87,16 @@ module.exports = {
   async driveTime(req, res) {
     try {
       const { long, lat, range } = req.query
-      console.log("long ==> ", Number(long), typeof long)
+
       // const Isochrones = new Openrouteservice.Isochrones({ api_key: process.env.DIRECTION_API_KEY })
       const Isochrones = new Openrouteservice.Isochrones({ api_key: process.env.DIRECTION_API_KEY, host: "http://localhost:8080/ors" })
-      console.log("Isochrones ==> ", Isochrones)
+
       const { features } = await Isochrones.calculate({
         locations: [[Number(long), Number(lat)]],
         profile: "driving-car",
         range: [Number(range)],
         range_type: "time"
       })
-      console.log("features ==> ", features)
 
       const regions = await Region.find({
         centroid: {
@@ -236,12 +235,10 @@ module.exports = {
       }
       const query = { $text: { $search: term } }
 
-      if (geographicLevel !== undefined) {
-        if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "msaType"].includes(geographicLevel)) {
-          query.geographicLevel = geographicLevel
-        } else {
-          return res.status(400).json({ error: true, message: "Field 'geographicLevel' not found !!!" })
-        }
+      if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "msaType"].includes(geographicLevel)) {
+        query.geographicLevel = geographicLevel
+      } else {
+        return res.status(400).json({ error: true, message: "Field 'geographicLevel' not found !!!" })
       }
 
       const paginationOptions = {
@@ -313,9 +310,9 @@ module.exports = {
           },
         },
       }).populate({ path: "_census" }).exec()
-      return res.status(200).json({ error: false, regions: searchRegionData })
+      return res.status(200).json({ error: false, point: searchRegionData })
     } catch (error) {
-      return res.status(500).json({ message: "Server error" })
+      return res.status(500).json({ error: true, message: error.message })
     }
   },
 
