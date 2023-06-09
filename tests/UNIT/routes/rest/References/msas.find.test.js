@@ -27,26 +27,10 @@ test.beforeEach(async (t) => {
   t.context.displayitems = 2
 })
 
-// const responseSchema = Joi.array().items(Joi.object().keys({
-//   isActiveStatus: Joi.boolean(),
-//   _updatedBy: [Joi.string(), Joi.allow(null)],
-//   _id: Joi.string(),
-//   sourceName: Joi.string(),
-//   displayName: Joi.string(),
-//   code: Joi.number(),
-//   _createdBy: Joi.string(),
-//   id: Joi.string()
-// }))
-
 test.serial("MSA.get: Verify response after entering valid data in page,size ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
-  //   const { error } = responseSchema.validate(body.MSAs, { abortEarly: false })
-  //   t.true(error === undefined, error?.message)
-  //   t.is(body.MSAs.length, t.context.displayitems)
-  //   t.is(body.page, t.context.query.page)
-  //   t.is(body.size, t.context.query.size)
   t.is(status, 200)
   t.false(body.error)
 })
