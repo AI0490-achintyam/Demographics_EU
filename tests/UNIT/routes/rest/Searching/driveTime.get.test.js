@@ -26,22 +26,10 @@ test.beforeEach(async (t) => {
   }
 })
 
-// const responseSchema = Joi.array().items(Joi.object().keys({
-//   isActiveStatus: Joi.boolean(),
-//   _updatedBy: [Joi.string(), Joi.allow(null)],
-//   _id: Joi.string(),
-//   longitude: Joi.string(),
-//   latitude: Joi.string(),
-//   _createdBy: Joi.string(),
-//   id: Joi.string()
-// }))
-
 test.serial("drivetime.get: Verify response after entering valid data in longitude,latitude and time", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
-  // const { error } = responseSchema.validate(body.regions, { abortEarly: false })
-  // t.true(error === undefined, error?.message)
   t.is(status, 200)
   t.false(body.error)
 })

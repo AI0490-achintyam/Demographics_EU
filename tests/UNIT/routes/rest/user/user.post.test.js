@@ -23,9 +23,9 @@ test.beforeEach(async (t) => {
       first: "Ram",
       last: "Charan"
     },
-    isActiveStatus: true,
+    isActive: true,
     email: "ram@test.com",
-    phoneNumber: "9977665594",
+    phone: "9977665594",
   }
   // eslint-disable-next-line no-param-reassign
   t.context.authId = {
@@ -37,8 +37,8 @@ test.beforeEach(async (t) => {
 //   userName: Joi.string(),
 //   name: Joi.object(),
 //   email: Joi.string(),
-//   phoneNumber: Joi.string(),
-//   isActiveStatus: Joi.boolean(),
+//   phone: Joi.string(),
+//   isActive: Joi.boolean(),
 //   _createdBy: Joi.string(),
 //   _updatedBy: [Joi.string(), Joi.allow(null)],
 //   _id: Joi.string(),
@@ -59,9 +59,9 @@ test.serial("User.post: Verify response after entering valid data", async (t) =>
   t.is(body.user.userName, t.context.reqbody.userName)
   t.is(body.user.name.first, t.context.reqbody.name.first)
   t.is(body.user.name.last, t.context.reqbody.name.last)
-  t.is(body.user.isActiveStatus, t.context.reqbody.isActiveStatus)
+  t.is(body.user.isActive, t.context.reqbody.isActive)
   t.is(body.user.email, t.context.reqbody.email)
-  t.is(body.user.phoneNumber, t.context.reqbody.phoneNumber)
+  t.is(body.user.phone, t.context.reqbody.phone)
   t.is(body.user._createdBy, t.context.authId._id)
   t.is(status, 200)
   t.false(body.error)
@@ -476,62 +476,62 @@ test.serial("User.post: Verify response after entering boolean value in name", a
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering integer value in isActiveStatus", async (t) => {
+test.serial("User.post: Verify response after entering integer value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, isActiveStatus: 1 },
+    body: { ...t.context.reqbody, isActive: 1 },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering string value in isActiveStatus", async (t) => {
+test.serial("User.post: Verify response after entering string value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, isActiveStatus: "XY" },
+    body: { ...t.context.reqbody, isActive: "XY" },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering array value in isActiveStatus", async (t) => {
+test.serial("User.post: Verify response after entering array value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, isActiveStatus: ["true"] },
+    body: { ...t.context.reqbody, isActive: ["true"] },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering true value in isActiveStatus", async (t) => {
+test.serial("User.post: Verify response after entering true value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, isActiveStatus: false },
+    body: { ...t.context.reqbody, isActive: false },
     auth: t.context.authId
   })
-  const newisActiveStatus = false
-  t.is(body.user.isActiveStatus, newisActiveStatus)
+  const newisActive = false
+  t.is(body.user.isActive, newisActive)
   t.is(status, 200)
   t.false(body.error)
 })
 
-test.serial("User.post: Verify response after entering undefined value in isActiveStatus", async (t) => {
+test.serial("User.post: Verify response after entering undefined value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, isActiveStatus: undefined },
+    body: { ...t.context.reqbody, isActive: undefined },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering null value in isActiveStatus", async (t) => {
+test.serial("User.post: Verify response after entering null value in isActive", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, isActiveStatus: null },
+    body: { ...t.context.reqbody, isActive: null },
     auth: t.context.authId
   })
   t.is(status, 400)
@@ -620,82 +620,82 @@ test.serial("User.post: Verify response after entering boolean value in email", 
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering integer value in phoneNumber", async (t) => {
+test.serial("User.post: Verify response after entering integer value in phone", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, phoneNumber: 1 },
+    body: { ...t.context.reqbody, phone: 1 },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering blank value in phoneNumber", async (t) => {
+test.serial("User.post: Verify response after entering blank value in phone", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, phoneNumber: " " },
+    body: { ...t.context.reqbody, phone: " " },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering array value in phoneNumber", async (t) => {
+test.serial("User.post: Verify response after entering array value in phone", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, phoneNumber: ["1233211234"] },
+    body: { ...t.context.reqbody, phone: ["1233211234"] },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering invalid value in phoneNumber", async (t) => {
+test.serial("User.post: Verify response after entering invalid value in phone", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, phoneNumber: "X" },
+    body: { ...t.context.reqbody, phone: "X" },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering extra space before and after the phoneNumber", async (t) => {
+test.serial("User.post: Verify response after entering extra space before and after the phone", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, phoneNumber: "   9977665594  " },
+    body: { ...t.context.reqbody, phone: "   9977665594  " },
     auth: t.context.authId
   })
-  const newphoneNumber = "9977665594"
-  t.is(body.user.phoneNumber, newphoneNumber)
+  const newphone = "9977665594"
+  t.is(body.user.phone, newphone)
   t.is(status, 200)
   t.false(body.error)
 })
 
-test.serial("User.post: Verify response after entering undefined value in phoneNumber", async (t) => {
+test.serial("User.post: Verify response after entering undefined value in phone", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, phoneNumber: undefined },
+    body: { ...t.context.reqbody, phone: undefined },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering null value in phoneNumber", async (t) => {
+test.serial("User.post: Verify response after entering null value in phone", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, phoneNumber: null },
+    body: { ...t.context.reqbody, phone: null },
     auth: t.context.authId
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("User.post: Verify response after entering boolean value in phoneNumber", async (t) => {
+test.serial("User.post: Verify response after entering boolean value in phone", async (t) => {
   const { status, body } = await runRouteHandler(post, {
     method: "POST",
-    body: { ...t.context.reqbody, phoneNumber: true },
+    body: { ...t.context.reqbody, phone: true },
     auth: t.context.authId
   })
   t.is(status, 400)

@@ -9,8 +9,8 @@ module.exports = [{
     last: "Mishra"
   },
   email: "rishi@test.com",
-  phoneNumber: "9977665544",
-  isActiveStatus: true,
+  phone: "9977665544",
+  isActive: true,
   isDeleted: false,
   forgotpassword: {
     requestedAt: null,
@@ -31,8 +31,8 @@ module.exports = [{
     last: "user"
   },
   email: "superuser@test.com",
-  phoneNumber: "9038826507",
-  isActiveStatus: true,
+  phone: "9038826507",
+  isActive: true,
   isDeleted: false,
   forgotpassword: {
     requestedAt: null,
@@ -53,8 +53,8 @@ module.exports = [{
     last: "Santra"
   },
   email: "rohit@test.com",
-  phoneNumber: "7980792906",
-  isActiveStatus: true,
+  phone: "7980792906",
+  isActive: true,
   isDeleted: false,
   forgotpassword: {
     requestedAt: null,
@@ -75,8 +75,8 @@ module.exports = [{
     last: "Banerjee"
   },
   email: "rahul@test.com",
-  phoneNumber: "7980792920",
-  isActiveStatus: false,
+  phone: "7980792920",
+  isActive: false,
   isDeleted: false,
   forgotpassword: {
     requestedAt: null,
@@ -97,8 +97,8 @@ module.exports = [{
     last: "Goswami"
   },
   email: "raj@test.com",
-  phoneNumber: "7980792920",
-  isActiveStatus: false,
+  phone: "7980792920",
+  isActive: false,
   isDeleted: true,
   forgotpassword: {
     requestedAt: null,

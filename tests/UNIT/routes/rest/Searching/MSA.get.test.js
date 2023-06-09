@@ -4,8 +4,8 @@ const sinon = require("sinon")
 const {
   runRouteHandler, setupMongo, teardownMongo, setupFixtures, teardownFixtures
 } = require("../../../../_utils")
-const { get } = require("../../../../../routes/rest/users")
-const geoId = require("../../../../../models/user")
+const { msa: get } = require("../../../../../routes/rest/searching/index")
+const geoId = require("../../../../../models/regions/index")
 
 /** Setup & Teardown code (COMMON) */
 test.before(setupMongo)
@@ -16,45 +16,36 @@ test.afterEach(teardownFixtures)
 
 test.beforeEach(async (t) => {
   // eslint-disable-next-line no-param-reassign
-  t.context.query = {
-    geoId: "60650408211"
-  }
+  t.context.validgeoId = "60650408211"
   // eslint-disable-next-line no-param-reassign
-  t.context.invalidquery = {
-  }
+  t.context.invalidgeoId = "234324"
 })
-
-// const responseSchema = Joi.array().items(Joi.object().keys({
-//   isActiveStatus: Joi.boolean(),
-//   _updatedBy: [Joi.string(), Joi.allow(null)],
-//   _id: Joi.string(),
-//   longitude: Joi.string(),
-//   latitude: Joi.string(),
-//   _createdBy: Joi.string(),
-//   id: Joi.string()
-// }))
 
 test.serial("msa.get: Verify response after entering valid data in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: t.context.query
+    params: {
+      geoId: t.context.validgeoId
+    }
   })
-  // const { error } = responseSchema.validate(body.regions, { abortEarly: false })
-  // t.true(error === undefined, error?.message)
   t.is(status, 200)
   t.false(body.error)
 })
 
 test.serial("msa.get: Verify response after entering invalid query", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: t.context.invalidquery
+    params: {
+      geoId: t.context.invalidgeoId
+    }
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("msa.get: Verify response after entering integer value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, geoId: 100 }
+    params: {
+      geoId: 100
+    }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -62,7 +53,9 @@ test.serial("msa.get: Verify response after entering integer value in geoId ", a
 
 test.serial("msa.get: Verify response after entering invalid string value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, geoId: "x" }
+    params: {
+      geoId: "x"
+    }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -70,31 +63,39 @@ test.serial("msa.get: Verify response after entering invalid string value in geo
 
 test.serial("msa.get: Verify response after entering array value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, geoId: ["60650408211"] }
+    params: {
+      geoId: [100]
+    }
   })
-  t.is(status, 500)
+  t.is(status, 400)
   t.true(body.error)
 })
 
 test.serial("msa.get: Verify response after entering undefined value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, geoId: undefined }
+    params: {
+      geoId: undefined
+    }
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("msa.get: Verify response after entering null value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, geoId: null }
+    params: {
+      geoId: null
+    }
   })
-  t.is(status, 200)
-  t.false(body.error)
+  t.is(status, 400)
+  t.true(body.error)
 })
 
 test.serial("msa.get: Verify response after entering boolean value in geoId ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, geoId: true }
+    params: {
+      geoId: true
+    }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -103,7 +104,9 @@ test.serial("msa.get: Verify response after entering boolean value in geoId ", a
 test.serial("msa.get: Verify response after getting server error", async (t) => {
   const stub = sinon.stub(geoId, "find").throws(new Error("Server Error"))
   const { status, body } = await runRouteHandler(get, {
-    query: t.context.query
+    params: {
+      geoId: t.context.validgeoId
+    }
   })
   t.is(status, 500)
   t.true(body.error)
