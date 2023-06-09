@@ -37,11 +37,13 @@ module.exports = {
   async censusattributes(req, res) {
     const { term, page = 1, size = 50 } = req.query
     try {
-      if (term !== undefined) {
+      if (term !== "undefined") {
+        console.log("term ==> ", term)
         if (typeof term !== "string") {
+          console.log("term 1 ==> ", term)
           return res.status(400).json({ error: true, message: "field 'term' must be string" })
         }
-        const data = await Reference.findOne({ term })
+        const data = await Reference.findOne({ variableId: term })
         return res.status(200).json({ error: false, referenceData: data })
       }
 

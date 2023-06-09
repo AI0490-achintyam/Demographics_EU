@@ -49,10 +49,11 @@ module.exports = {
 
       const regionData = await Region.find(
         {
+          geographicLevel: "Blocks",
           centroid: {
             $nearSphere: {
-              $geometry: { type: "Point", coordinates: [parseFloat(long), parseFloat(lat)] },
-              $maxDistance: parseFloat(rad),
+              $geometry: { type: "Point", coordinates: [Number(long), Number(lat)] },
+              $maxDistance: Number(rad),
             }
           }
         },
@@ -144,7 +145,7 @@ module.exports = {
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
       const regionsWithinMsa = await Region.find({
-        geographicLevel: "MSA",
+        geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
             $geometry: msa.toObject().geometry
@@ -190,7 +191,7 @@ module.exports = {
 
       const regionsWithinZipcode = await Region.find({
 
-        geographicLevel: "Zipcode",
+        geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
             $geometry: zipcode.toObject().geometry
@@ -304,6 +305,7 @@ module.exports = {
       }
 
       const searchRegionData = await Region.find({
+        geographicLevel: "Blocks",
         geometry: {
           $geoIntersects: {
             $geometry: searchPoint
@@ -355,6 +357,7 @@ module.exports = {
 
       const geoData = await Region.find(
         {
+          geographicLevel: "Blocks",
           centroid: {
             $geoWithin: {
               $geometry: features
