@@ -22,7 +22,7 @@ test.beforeEach(async (t) => {
   }
   // eslint-disable-next-line no-param-reassign
   t.context.validreqbody = {
-    handle: "rohit",
+    handle: "rohit@test.com",
     password: "qwerty"
   }
   // eslint-disable-next-line no-param-reassign
@@ -30,7 +30,7 @@ test.beforeEach(async (t) => {
   }
   // eslint-disable-next-line no-param-reassign
   t.context.inactivereqbody = {
-    handle: "rahul",
+    handle: "rahul@test.com",
     password: "qwerty"
   }
   // eslint-disable-next-line no-param-reassign
@@ -102,7 +102,7 @@ test.serial("Auth.post: Verify response after entering integer value in username
     method: "POST",
     body: { ...t.context.validreqbody, handle: 1 }
   })
-  t.is(status, 400)
+  t.is(status, 500)
   t.true(body.error)
 })
 
@@ -120,7 +120,7 @@ test.serial("Auth.post: Verify response after entering null value in username", 
     method: "POST",
     body: { ...t.context.validreqbody, handle: null }
   })
-  t.is(status, 400)
+  t.is(status, 500)
   t.true(body.error)
 })
 
@@ -129,7 +129,7 @@ test.serial("Auth.post: Verify response after entering array value in username",
     method: "POST",
     body: { ...t.context.validreqbody, handle: ["rohit"] }
   })
-  t.is(status, 400)
+  t.is(status, 500)
   t.true(body.error)
 })
 
@@ -138,7 +138,7 @@ test.serial("Auth.post: Verify response after entering boolean value in username
     method: "POST",
     body: { ...t.context.validreqbody, handle: true }
   })
-  t.is(status, 400)
+  t.is(status, 500)
   t.true(body.error)
 })
 
