@@ -64,23 +64,23 @@ router.get("/SearchIdentifiers/searchbyzipcode", SearchIdentifiers.searchByZipco
 router.get("/AddressTranslation/getcordinates", AddressTranslation.getCoordinates)
 
 // Search list of GeoIdCensusBlockSearch routes ...................
-router.get("/GeoIdCensusBlockSearch/radius", GeoIdCensusBlockSearch.radiusSearch)
-router.get("/GeoIdCensusBlockSearch/drivetime", GeoIdCensusBlockSearch.driveTime)
-router.get("/GeoIdCensusBlockSearch/msa/:geoId", GeoIdCensusBlockSearch.msa)
-router.get("/GeoIdCensusBlockSearch/zipcode/:geoId", GeoIdCensusBlockSearch.zipcode)
+router.get("/search/radius", GeoIdCensusBlockSearch.radiusSearch)
+router.get("/search/drivetime", GeoIdCensusBlockSearch.driveTime)
+router.get("/search/msa/:geoId", GeoIdCensusBlockSearch.msa)
+router.get("/search/zipcode/:geoId", GeoIdCensusBlockSearch.zipcode)
 // router.get("/regions", GeoIdCensusBlockSearch.regions)
 // router.get("/search/point", GeoIdCensusBlockSearch.point)
 
 // Reverse Lookups routes ...............
 router.get("/ReverseLookups/longlat", ReverseLookups.searchByLongLat)
-router.get("/ReverseLookups/longlat", ReverseLookups.searchByGeoId)
+router.get("/ReverseLookups/geoid/:geoId", ReverseLookups.searchByGeoId)
 
 // DemographicsData routes................
 router.post("/DemographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
 router.get("/DemographicsData/Custompolygon", DemographicsData.byCustomPolygon)
-router.get("/DemographicsData/Custompolygon/:geoId", DemographicsData.byGeoId)
-router.post("/DemographicsData/Custompolygon", DemographicsData.byRadius)
-router.post("/DemographicsData/Custompolygon", DemographicsData.byDriveTime)
+router.get("/DemographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
+router.post("/DemographicsData/radius", DemographicsData.byRadius)
+router.post("/DemographicsData/drivetime", DemographicsData.byDriveTime)
 
 // Search Identifiers..............
 
