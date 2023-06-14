@@ -1,4 +1,3 @@
-/* eslint-disable */
 const test = require("ava")
 const sinon = require("sinon")
 // const Joi = require("joi")
