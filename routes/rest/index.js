@@ -32,10 +32,15 @@ const signup = require("./auth/signup")
 // const forgotpassword = require("./auth/password")
 // const users = require("./users")
 
-const searching = require("./searching")
-const region = require("./region")
-const census = require("./census")
-const references = require("./references")
+const SearchIdentifiers = require("./SearchIdentifiers")
+const AddressTranslation = require("./AddressTranslation")
+const GeoIdCensusBlockSearch = require("./GeoIdCensusBlockSearch")
+const ReverseLookups = require("./ReverseLookups")
+const DemographicsData = require("./DemographicsData")
+
+// const region = require("./region")
+// const census = require("./census")
+// const references = require("./references")
 
 router.post("/signup", signup.post) // UNAUTHENTICATED
 router.post("/login", login.post) // UNAUTHENTICATED
@@ -51,26 +56,42 @@ router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 // router.put("/user/:id", users.put)
 // router.delete("/user/:id", users.delete)
 
-// Search list of searching routes ...................
-router.get("/search/radius", searching.radiusSearch)
-router.get("/search/drivetime", searching.driveTime)
-router.get("/search/msa/:geoId", searching.msa)
-router.get("/search/zipcode/:geoId", searching.zipcode)
-router.get("/regions", searching.regions)
-router.get("/search/point", searching.point)
-router.post("/search/customfile", upload.single("rdocs"), searching.customfile)
-// router.get("/search/customfile", upload, searching.customfile)
+// Search Identifiers routes .................
+router.get("/SearchIdentifiers/searchbyname", SearchIdentifiers.searchByName)
+router.get("/SearchIdentifiers/searchbyzipcode", SearchIdentifiers.searchByZipcode)
+
+// address translator routes...............
+router.get("/AddressTranslation/getcordinates", AddressTranslation.getCoordinates)
+
+// Search list of GeoIdCensusBlockSearch routes ...................
+router.get("/search/radius", GeoIdCensusBlockSearch.radiusSearch)
+router.get("/search/drivetime", GeoIdCensusBlockSearch.driveTime)
+router.get("/search/msa/:geoId", GeoIdCensusBlockSearch.msa)
+router.get("/search/zipcode/:geoId", GeoIdCensusBlockSearch.zipcode)
+// router.get("/regions", GeoIdCensusBlockSearch.regions)
+// router.get("/search/point", GeoIdCensusBlockSearch.point)
+
+// Reverse Lookups routes ...............
+router.get("/ReverseLookups/longlat", ReverseLookups.searchByLongLat)
+router.get("/ReverseLookups/geoid/:geoId", ReverseLookups.searchByGeoId)
+
+// DemographicsData routes................
+router.post("/DemographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
+router.get("/DemographicsData/Custompolygon", DemographicsData.byCustomPolygon)
+router.get("/DemographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
+router.post("/DemographicsData/radius", DemographicsData.byRadius)
+router.post("/DemographicsData/drivetime", DemographicsData.byDriveTime)
 
 // Search particular regions data.................
-router.get("/region/:id", region.get)
+// router.get("/region/:id", region.get)
 
 // Search particular census data.................
-router.get("/census/:geoid", census.get)
+// router.get("/census/:geoid", census.get)
 
 // Search list of  references.................
-router.get("/references/censusattributes", references.censusattributes)
-router.get("/references/years", references.years)
-router.get("/references/msa", references.msa)
-router.get("/references/forecastyears", references.forecastYears)
+// router.get("/references/censusattributes", references.censusattributes)
+// router.get("/references/years", references.years)
+// router.get("/references/msa", references.msa)
+// router.get("/references/forecastyears", references.forecastYears)
 
 module.exports = router
