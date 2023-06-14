@@ -3,7 +3,7 @@ const sinon = require("sinon")
 const {
   runRouteHandler, setupMongo, teardownMongo, setupFixtures, teardownFixtures
 } = require("../../../../_utils")
-const { censusattributes: get } = require("../../../../../routes/rest/references/index")
+const { censusattributes: get } = require("../../../../../routes/rest/index")
 const term = require("../../../../../models/reference")
 
 /** Setup & Teardown code (COMMON) */

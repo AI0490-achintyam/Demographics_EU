@@ -4,7 +4,7 @@ const sinon = require("sinon")
 const {
   runRouteHandler, setupMongo, teardownMongo, setupFixtures, teardownFixtures
 } = require("../../../../_utils")
-const { regions: get } = require("../../../../../routes/rest/searching/index")
+const { searchByName: get } = require("../../../../../routes/rest/SearchIdentifiers/index")
 const region = require("../../../../../models/regions/index")
 
 /** Setup & Teardown code (COMMON) */
@@ -18,7 +18,7 @@ test.beforeEach(async (t) => {
   // eslint-disable-next-line no-param-reassign
   t.context.query = {
     geographicLevel: "Zipcode",
-    term: "State",
+    name: "State",
     page: 1,
     size: 10
   }
@@ -27,7 +27,7 @@ test.beforeEach(async (t) => {
   }
 })
 
-test.serial("regions.get: Verify response after entering valid data in geographicLevel and term", async (t) => {
+test.serial("regions.get: Verify response after entering valid data in geographicLevel and name", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
@@ -147,41 +147,41 @@ test.serial("regions.get: Verify response after entering boolean value in geogra
   t.true(body.error)
 })
 
-test.serial("regions.get: Verify response after entering integer value in term ", async (t) => {
+test.serial("regions.get: Verify response after entering integer value in name ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, term: 1 }
+    query: { ...t.context.query, name: 1 }
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("regions.get: Verify response after entering array value in term ", async (t) => {
+test.serial("regions.get: Verify response after entering array value in name ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, term: ["x"] }
+    query: { ...t.context.query, name: ["x"] }
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("regions.get: Verify response after entering undefined value in term ", async (t) => {
+test.serial("regions.get: Verify response after entering undefined value in name ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, term: undefined }
+    query: { ...t.context.query, name: undefined }
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("regions.get: Verify response after entering null value in term ", async (t) => {
+test.serial("regions.get: Verify response after entering null value in name ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, term: null }
+    query: { ...t.context.query, name: null }
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("regions.get: Verify response after entering boolean value in term ", async (t) => {
+test.serial("regions.get: Verify response after entering boolean value in name ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, term: true }
+    query: { ...t.context.query, name: true }
   })
   t.is(status, 400)
   t.true(body.error)

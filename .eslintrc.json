@@ -8,7 +8,6 @@
   "parserOptions": {
     "ecmaVersion": "latest"
   },
-  "ignorePatterns": "tests/**/*.test.js",
   "extends": "airbnb-base",
   "rules": {
     "func-names": [
