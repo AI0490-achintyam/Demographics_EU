@@ -82,8 +82,6 @@ router.get("/DemographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
 router.post("/DemographicsData/radius", DemographicsData.byRadius)
 router.post("/DemographicsData/drivetime", DemographicsData.byDriveTime)
 
-// Search Identifiers..............
-
 // Search particular regions data.................
 // router.get("/region/:id", region.get)
 
