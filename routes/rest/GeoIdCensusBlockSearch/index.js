@@ -72,7 +72,7 @@ module.exports = {
    *
    * @apiQuery {Number} long Enter longitude of the given point
    * @apiQuery {Number} lat Enter latitude of the given point
-   * @apiQuery {Number} range Enter range in terms of meters
+   * @apiQuery {Number} Time Enter time in terms of minutes
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
@@ -84,19 +84,21 @@ module.exports = {
 
   async driveTime(req, res) {
     try {
-      const { long, lat, range } = req.query
+      const { long, lat, time } = req.query
 
+      // use mapbox..........
       // const Isochrones = new Openrouteservice.Isochrones({ api_key: process.env.DIRECTION_API_KEY })
       const Isochrones = new Openrouteservice.Isochrones({ api_key: process.env.DIRECTION_API_KEY, host: "http://localhost:8080/ors" })
 
       const { features } = await Isochrones.calculate({
         locations: [[Number(long), Number(lat)]],
         profile: "driving-car",
-        range: [Number(range)],
+        range: [Number(time)],
         range_type: "time"
       })
 
       const regions = await Region.find({
+        geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
             $geometry: features[0].geometry
@@ -187,7 +189,6 @@ module.exports = {
       if (zipcode === null) return res.status(400).json({ error: true, message: `No such Zipcode with geo id ${geoId}` })
 
       const regionsWithinZipcode = await Region.find({
-
         geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
