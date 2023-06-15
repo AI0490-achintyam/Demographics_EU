@@ -57,11 +57,11 @@ router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 // router.delete("/user/:id", users.delete)
 
 // Search Identifiers routes .................
-router.get("/SearchIdentifiers/searchbyname", SearchIdentifiers.searchByName)
-router.get("/SearchIdentifiers/searchbyzipcode", SearchIdentifiers.searchByZipcode)
+router.get("/searchIdentifiers/byname", SearchIdentifiers.searchByName)
+router.get("/searchIdentifiers/byzipcode", SearchIdentifiers.searchByZipcode)
 
-// address translator routes...............
-router.get("/AddressTranslation/getcordinates", AddressTranslation.getCoordinates)
+// Address translator routes...............
+router.get("/geocoding/coordinates", AddressTranslation.getCoordinates)
 
 // Search list of GeoIdCensusBlockSearch routes ...................
 router.get("/search/radius", GeoIdCensusBlockSearch.radiusSearch)
@@ -72,15 +72,15 @@ router.get("/search/zipcode/:geoId", GeoIdCensusBlockSearch.zipcode)
 // router.get("/search/point", GeoIdCensusBlockSearch.point)
 
 // Reverse Lookups routes ...............
-router.get("/ReverseLookups/longlat", ReverseLookups.searchByLongLat)
-router.get("/ReverseLookups/geoid/:geoId", ReverseLookups.searchByGeoId)
+router.get("/reverseLookup/longlat", ReverseLookups.searchByLongLat)
+router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
 
 // DemographicsData routes................
-router.post("/DemographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
-router.get("/DemographicsData/Custompolygon", DemographicsData.byCustomPolygon)
-router.get("/DemographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
-router.post("/DemographicsData/radius", DemographicsData.byRadius)
-router.post("/DemographicsData/drivetime", DemographicsData.byDriveTime)
+router.post("/demographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
+router.get("/demographicsData/custompolygon", DemographicsData.byCustomPolygon)
+router.get("/demographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
+router.post("/demographicsData/radius", DemographicsData.byRadius)
+router.post("/demographicsData/drivetime", DemographicsData.byDriveTime)
 
 // Search particular regions data.................
 // router.get("/region/:id", region.get)
