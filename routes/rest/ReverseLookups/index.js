@@ -43,7 +43,7 @@ module.exports = {
       }
 
       const searchRegionData = await Region.find({
-        geographicLevel: "Blocks",
+        geographicLevel: { $in: ["Country", "State", "County", "Tract", "Places", "MSA", "Zipcode"] },
         geometry: {
           $geoIntersects: {
             $geometry: searchPoint
@@ -82,14 +82,14 @@ module.exports = {
         geoId
 
       }).exec()
-      if (getGeoId === null) return res.status(400).json({ error: true, message: `No such Zipcode with geo id ${geoId}` })
+      if (getGeoId === null) return res.status(400).json({ error: true, message: `No such geo id ${geoId}` })
 
       const regionData = await Region.findOne({
         geoId
       }).populate({ path: "_census" }).exec()
 
-      if (!regionData) {
-        return res.status(400).json({ error: true, reason: "Region not found" })
+      if (regionData === null) {
+        return res.status(400).json({ error: true, reason: "Geo ID not found" })
       }
       return res.status(200).json({ error: false, region: regionData })
     } catch (error) {
