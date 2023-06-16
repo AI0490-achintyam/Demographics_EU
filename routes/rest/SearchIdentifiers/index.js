@@ -10,7 +10,7 @@ module.exports = {
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
    *
    * @apiQuery {String} Name Enter name to search
-   * @apiQuery {Enum} geographicalLevel Enter geographicalLevel
+   * @apiQuery {Enum} [geographicalLevel] Enter geographicalLevel
    * @apiQuery {Number}[page=1] Enter page number, default value is 1
    * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
@@ -93,7 +93,6 @@ module.exports = {
       }
       const query = { $text: { $search: zipcode }, geographicLevel: "Zipcode" }
 
-      console.log("query ==> ", query)
       const paginationOptions = {
         page,
         limit: size,

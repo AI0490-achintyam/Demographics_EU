@@ -137,7 +137,9 @@ module.exports = {
       const msa = await Region.findOne({
         geoId,
         geographicLevel: "MSA"
-      }).exec()
+      })
+        .lean()
+        .exec()
 
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
@@ -145,10 +147,14 @@ module.exports = {
         geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
-            $geometry: msa.toObject().geometry
+            $geometry: msa.geometry
           }
         }
-      }).populate({ path: "_census" }).exec()
+      })
+        .select("-_id geoId name geographicLevel")
+        // .populate({ path: "_census" })
+        .lean()
+        .exec()
       return res.status(200).json({ error: false, regions: regionsWithinMsa })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })

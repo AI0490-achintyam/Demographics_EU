@@ -1,6 +1,7 @@
 const execa = require("execa")
 const { rimraf } = require("rimraf")
 const fs = require("fs")
+const Census = require("../../../models/census")
 const Region = require("../../../models/regions")
 
 module.exports = {
@@ -107,20 +108,13 @@ module.exports = {
   async byGeoId(req, res) {
     try {
       const { geoId } = req.params
-      const getGeoId = await Region.findOne({
+      const censusData = await Census.findOne({
         geoId
-
       }).exec()
-      if (getGeoId === null) return res.status(400).json({ error: true, message: `No such Zipcode with geo id ${geoId}` })
 
-      const regionData = await Region.findOne({
-        geoId
-      }).populate({ path: "_census" }).exec()
+      if (censusData === null) return res.status(400).json({ error: true, message: `No such geo id ${geoId}` })
 
-      if (!regionData) {
-        return res.status(400).json({ error: true, reason: "Region not found" })
-      }
-      return res.status(200).json({ error: false, region: regionData })
+      return res.status(200).json({ error: false, censusData })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
