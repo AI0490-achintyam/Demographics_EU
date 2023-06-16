@@ -68,9 +68,10 @@ module.exports = {
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiQuery {Number} long Enter longitude of the given point
+   * @apiQuery {Number} lon Enter longitude of the given point
    * @apiQuery {Number} lat Enter latitude of the given point
-   * @apiQuery {Number} Time Enter time in terms of minutes
+   * @apiQuery {String} profile Enter profile for example:cycling, walking, driving
+   * @apiQuery {Number} mintutes Enter time in terms of minutes
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
@@ -100,8 +101,8 @@ module.exports = {
       if (isNaN(Number(minutes)) || minutes > 60 || minutes <= 0) {
         return res.status(400).json({ error: true, message: "Field 'minutes' must be a positive number less than 60!!" })
       }
-      if (typeof profile !== "string" || !["cycling", "driving", "walking"].includes(profile)) {
-        return res.status(400).json({ error: true, message: "Field 'profile' is not valid !!!" })
+      if (typeof profile !== "string" || !["cycling", "driving", "walking", "transit"].includes(profile)) {
+        return res.status(400).json({ error: true, message: "Please select either cycling, driving, walking, or transit for the 'profile' field !!!" })
       }
 
       const urlBase = process.env.MAPBOX_BASE_URL
