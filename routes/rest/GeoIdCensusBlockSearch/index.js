@@ -25,9 +25,8 @@ module.exports = {
   */
 
   async radiusSearch(req, res) {
-    const { long, lat, rad } = req.query
-
     try {
+      const { long, lat, rad } = req.query
       // validation start.........
 
       // eslint-disable-next-line no-restricted-globals
@@ -115,7 +114,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/msa MSA Search
+   * @api {get} /search/msa/{geoId} MSA Search
    * @apiName MSA Search
    * @apiGroup GeoId Census Block Search
    * @apiVersion  1.0.0
@@ -133,9 +132,8 @@ module.exports = {
    *  }
   */
   async msa(req, res) {
-    const { geoId } = req.params
-
     try {
+      const { geoId } = req.params
       const msa = await Region.findOne({
         geoId,
         geographicLevel: "MSA"
@@ -159,7 +157,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/zipcode Zipcode Search
+   * @api {get} /search/zipcode/{geoId} Zipcode Search
    * @apiName Zipcode Search
    * @apiGroup GeoId Census Block Search
    * @apiVersion  1.0.0

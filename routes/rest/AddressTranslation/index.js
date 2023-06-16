@@ -3,7 +3,7 @@
 module.exports = {
 
   /**
-   * @api {get} /AddressTranslation/getcordinates Get Coordinates
+   * @api {get} /geocoding Get Coordinates
    * @apiName Get Coordinates
    * @apiGroup Address Translation
    * @apiVersion  1.0.0

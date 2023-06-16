@@ -4,7 +4,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /ReverseLookups/longlat Search By Longitude & Latitide
+   * @api {get} /reverseLookup/point Search By Longitude & Latitide
    * @apiName searchByLongLat
    * @apiGroup Reverse Lookups
    * @apiVersion  1.0.0
@@ -58,7 +58,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /ReverseLookups/geoid/:geoId Search By GeoId
+   * @api {get} /reverseLookup/geoid/{geoId} Search By GeoId
    * @apiName searchByGeoId
    * @apiGroup Reverse Lookups
    * @apiVersion  1.0.0
