@@ -2,7 +2,7 @@ const Region = require("../../../models/regions")
 
 module.exports = {
 /**
-   * @api {get} /SearchIdentifiers/searchbyname Search By Name
+   * @api {get} /searchIdentifiers/byname Search By Name
    * @apiName Search By Name
    * @apiGroup Search Identifiers
    * @apiVersion  1.0.0
@@ -33,10 +33,12 @@ module.exports = {
       }
       const query = { $text: { $search: name } }
 
-      if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "msaType"].includes(geographicLevel)) {
-        query.geographicLevel = geographicLevel
-      } else {
-        return res.status(400).json({ error: true, message: "Field 'geographicLevel' not found !!!" })
+      if (geographicLevel !== undefined) {
+        if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "msaType"].includes(geographicLevel)) {
+          query.geographicLevel = geographicLevel
+        } else {
+          return res.status(400).json({ error: true, message: "Field 'geographicLevel' not found !!!" })
+        }
       }
 
       const paginationOptions = {
@@ -62,7 +64,7 @@ module.exports = {
   },
 
   /**
-   * @api {get} /SearchIdentifiers/searchbyzipcode Search By Zipcode
+   * @api {get} /searchIdentifiers/byzipcode Search By Zipcode
    * @apiName Search By Zipcode
    * @apiGroup Search Identifiers
    * @apiVersion  1.0.0
@@ -91,6 +93,7 @@ module.exports = {
       }
       const query = { $text: { $search: zipcode }, geographicLevel: "Zipcode" }
 
+      console.log("query ==> ", query)
       const paginationOptions = {
         page,
         limit: size,

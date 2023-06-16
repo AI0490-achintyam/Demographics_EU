@@ -12,9 +12,6 @@ const RegionSchema = new mongoose.Schema({
     type: String,
     enum: ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode"]
   },
-  zipcode: {
-    type: Number
-  },
   // _censusdata: {
   //   type: mongoose.Schema.Types.ObjectId,
   //   ref: Census,

@@ -24,9 +24,8 @@ module.exports = {
   */
 
   async radiusSearch(req, res) {
-    const { long, lat, rad } = req.query
-
     try {
+      const { long, lat, rad } = req.query
       // validation start.........
 
       // eslint-disable-next-line no-restricted-globals
@@ -71,7 +70,7 @@ module.exports = {
    *
    * @apiQuery {Number} long Enter longitude of the given point
    * @apiQuery {Number} lat Enter latitude of the given point
-   * @apiQuery {Number} range Enter range in terms of meters
+   * @apiQuery {Number} Time Enter time in terms of minutes
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
@@ -114,6 +113,7 @@ module.exports = {
       const { features } = await response.json()
 
       const regions = await Region.find({
+        geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
             $geometry: features[0].geometry
@@ -129,7 +129,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/msa MSA Search
+   * @api {get} /search/msa/{geoId} MSA Search
    * @apiName MSA Search
    * @apiGroup GeoId Census Block Search
    * @apiVersion  1.0.0
@@ -147,9 +147,8 @@ module.exports = {
    *  }
   */
   async msa(req, res) {
-    const { geoId } = req.params
-
     try {
+      const { geoId } = req.params
       const msa = await Region.findOne({
         geoId,
         geographicLevel: "MSA"
@@ -173,7 +172,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /search/zipcode Zipcode Search
+   * @api {get} /search/zipcode/{geoId} Zipcode Search
    * @apiName Zipcode Search
    * @apiGroup GeoId Census Block Search
    * @apiVersion  1.0.0
@@ -203,7 +202,6 @@ module.exports = {
       if (zipcode === null) return res.status(400).json({ error: true, message: `No such Zipcode with geo id ${geoId}` })
 
       const regionsWithinZipcode = await Region.find({
-
         geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {

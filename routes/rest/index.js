@@ -61,7 +61,7 @@ router.get("/searchIdentifiers/byname", SearchIdentifiers.searchByName)
 router.get("/searchIdentifiers/byzipcode", SearchIdentifiers.searchByZipcode)
 
 // Address translator routes...............
-router.get("/geocoding/coordinates", AddressTranslation.getCoordinates)
+router.get("/geocoding", AddressTranslation.getCoordinates)
 
 // Search list of GeoIdCensusBlockSearch routes ...................
 router.get("/search/radius", GeoIdCensusBlockSearch.radiusSearch)
@@ -72,15 +72,15 @@ router.get("/search/zipcode/:geoId", GeoIdCensusBlockSearch.zipcode)
 // router.get("/search/point", GeoIdCensusBlockSearch.point)
 
 // Reverse Lookups routes ...............
-router.get("/reverseLookup/longlat", ReverseLookups.searchByLongLat)
+router.get("/reverseLookup/point", ReverseLookups.searchByLongLat)
 router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
 
 // DemographicsData routes................
 router.post("/demographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
 router.get("/demographicsData/custompolygon", DemographicsData.byCustomPolygon)
 router.get("/demographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
-router.post("/demographicsData/radius", DemographicsData.byRadius)
-router.post("/demographicsData/drivetime", DemographicsData.byDriveTime)
+router.get("/demographicsData/radius", DemographicsData.byRadius)
+router.get("/demographicsData/drivetime", DemographicsData.byDriveTime)
 
 // Search particular regions data.................
 // router.get("/region/:id", region.get)

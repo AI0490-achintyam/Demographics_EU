@@ -7,7 +7,7 @@ const Region = require("../../../models/regions")
 module.exports = {
   /**
    *
-   * @api {get} /search/customfile Shape file upload
+   * @api {get} /demographicsData/customfile Shape file upload
    * @apiName shapeFile
    * @apiGroup Demographics Data
    * @apiVersion  1.0.0
@@ -62,14 +62,15 @@ module.exports = {
 
   /**
    *
-   * @api {get} /DemographicsData/Custompolygon Custom Polygon
+   * @api {get} /demographicsData/custompolygon Custom Polygon
    * @apiName Custompolygon
    * @apiGroup Demographics Data
    * @apiVersion  1.0.0
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiQuery {String} GeoId Enter geoId
+   * @apiQuery {String} longitude Enter longitude
+   * @apiQuery {String} latitude Enter latitude
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
@@ -88,7 +89,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /DemographicsData/bygeoid/:geoId Search By GeoId
+   * @api {get} /demographicsData/bygeoid/{geoId} Search By GeoId
    * @apiName searchByGeoId
    * @apiGroup Demographics Data
    * @apiVersion  1.0.0
@@ -105,9 +106,8 @@ module.exports = {
    *  }
   */
   async byGeoId(req, res) {
-    const { geoId } = req.params
-
     try {
+      const { geoId } = req.params
       const getGeoId = await Region.findOne({
         geoId
 
@@ -129,7 +129,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /DemographicsData/radius Search By radius
+   * @api {get} /demographicsData/radius Search By radius
    * @apiName searchByradius
    * @apiGroup Demographics Data
    * @apiVersion  1.0.0
@@ -150,15 +150,43 @@ module.exports = {
   */
   async byRadius(req, res) {
     try {
-      return res.status(501).send("Not Implemented!")
-    } catch (error) {
-      return res.status(500).json({ error: true, message: error.message })
+      const { long, lat, rad } = req.query
+      // validation start.........
+
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(long)) || long === null || long > 180 || long < -180) {
+        return res.status(400).json({ error: true, message: "Field 'long' not valid !!!" })
+      }
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(lat)) || lat === null || lat > 90 || lat < -90) {
+        return res.status(400).json({ error: true, message: "Field 'lat' not valid !!!" })
+      }
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(rad)) || rad < 0 || rad === null) {
+        return res.status(400).json({ error: true, message: "Field 'rad' must be non-negative number!!!" })
+      }
+      // validation end..........
+
+      const regionData = await Region.find(
+        {
+          geographicLevel: "Blocks",
+          centroid: {
+            $nearSphere: {
+              $geometry: { type: "Point", coordinates: [Number(long), Number(lat)] },
+              $maxDistance: Number(rad),
+            }
+          }
+        },
+      ).populate({ path: "_census" }).exec()
+      return res.status(200).json({ error: false, regions: regionData })
+    } catch (err) {
+      return res.status(500).json({ error: true, message: err.message })
     }
   },
 
   /**
    *
-   * @api {get} /DemographicsData/drivetime DriveTime Search
+   * @api {get} /demographicsData/drivetime DriveTime Search
    * @apiName DriveTimeSearch
    * @apiGroup Demographics Data
    * @apiVersion  1.0.0
