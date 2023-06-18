@@ -44,7 +44,8 @@ module.exports = {
       const paginationOptions = {
         page,
         limit: size,
-        populate: [{ path: "_census" }],
+        // populate: [{ path: "_census" }],
+        select: "-centroid -geometry",
         sort: { _id: -1 }
       }
       const { docs } = await Region.paginate(
@@ -96,7 +97,8 @@ module.exports = {
       const paginationOptions = {
         page,
         limit: size,
-        populate: [{ path: "_census" }],
+        // populate: [{ path: "_census" }],
+        select: "-centroid -geometry",
         sort: { _id: -1 }
       }
       const { docs } = await Region.paginate(
