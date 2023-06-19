@@ -142,6 +142,10 @@ module.exports = {
           }
         }
       })
+        .select("-_id geoId name geographicLevel")
+        // .populate({ path: "_census" })
+        .lean()
+        .exec()
 
       return res.status(200).send({ error: false, regions })
     } catch (error) {
@@ -177,7 +181,6 @@ module.exports = {
       })
         .lean()
         .exec()
-
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
       const regionsWithinMsa = await Region.find({
