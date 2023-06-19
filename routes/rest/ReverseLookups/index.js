@@ -13,8 +13,6 @@ module.exports = {
    *
    * @apiQuery {Number} long Enter longitude of the given point
    * @apiQuery {Number} lat Enter latitude of the given point
-   * @apiQuery {Number}[page=1] Enter page number, default value is 1
-   * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
    * @apiSuccessExample {json} Success-Response:200
    * {
@@ -27,9 +25,7 @@ module.exports = {
   async searchByLongLat(req, res) {
     try {
       const
-        {
-          long, lat
-        } = req.query
+        { long, lat } = req.query
       // validation start.........
 
       // eslint-disable-next-line no-restricted-globals
@@ -42,7 +38,7 @@ module.exports = {
       }
       // validation end
 
-      const { searchRegionData } = await Region.find(
+      const searchRegionData = await Region.find(
         {
           geographicLevel: { $in: ["Country", "State", "County", "Tract", "Places", "MSA", "Zipcode"] },
           geometry: {
@@ -59,6 +55,7 @@ module.exports = {
         .lean()
         // .populate({ path: "_census" })
         .exec()
+
       return res.status(200).json({ error: false, regions: searchRegionData })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
@@ -75,8 +72,6 @@ module.exports = {
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
    * @apiQuery {String} GeoId Enter geoId
-   * @apiQuery {Number}[page=1] Enter page number, default value is 1
-   * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
    * @apiSuccessExample {json} Success-Response:200
    * {
@@ -104,26 +99,19 @@ module.exports = {
 
       if (getGeoId === null) return res.status(400).json({ error: true, message: `No such geo id ${geoId}` })
 
-      const query = {
+      const searchByGeoId = await Region.find({
         geometry: {
           $geoIntersects: {
             $geometry: getGeoId.centroid
           },
         },
-      }
-
-      const paginationOptions = {
-        page,
-        limit: size,
-        // populate: [{ path: "_census" }],
-        select: "geoId name geographicLevel",
-        sort: { _id: -1 }
-      }
-
-      const { docs } = await Region.paginate(query, paginationOptions)
+      })
+        .select("-_id geoId name geographicLevel")
+        .lean()
+        .exec()
       // .populate({ path: "_census" }).exec()
 
-      return res.status(200).json({ error: false, region: docs })
+      return res.status(200).json({ error: false, region: searchByGeoId })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }

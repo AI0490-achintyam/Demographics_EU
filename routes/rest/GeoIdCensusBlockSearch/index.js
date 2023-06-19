@@ -12,8 +12,8 @@ module.exports = {
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiQuery {Number} longitude Enter longitude of the given point
-   * @apiQuery {Number} latitude Enter latitude of the given point
+   * @apiQuery {Number} long Enter longitude of the given point
+   * @apiQuery {Number} lat Enter latitude of the given point
    * @apiQuery {Number} radius Enter scaler distance/radius in terms of miles
    * @apiSuccessExample {json} Success-Response:200
    * {
@@ -28,16 +28,10 @@ module.exports = {
     try {
       const
         {
-          long, lat, radius, page = 1, size = 10 // Note: radius input is in MILES
+          long, lat, radius // Note: radius input is in MILES
         } = req.query
 
-      // const radiusInMiles = radius / 0.000621371
       // validation start.........
-
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(page))) return res.status(400).json({ error: true, message: "Field 'page' must be a number" })
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(size))) return res.status(400).json({ error: true, message: "Field 'size' must be a number" })
 
       // eslint-disable-next-line no-restricted-globals
       if (isNaN(String(long)) || long === null || long > 180 || long < -180) {
@@ -58,13 +52,6 @@ module.exports = {
       }
       // validation end..........
 
-      // const paginationOptions = {
-      //   page,
-      //   limit: size,
-      //   // populate: [{ path: "_census" }],
-      //   select: "-centroid -geometry",
-      //   sort: { _id: -1 }
-      // }
       const regionData = await Region.find(
         {
           geographicLevel: "Blocks",
@@ -80,6 +67,7 @@ module.exports = {
         // .populate({ path: "_census" })
         .lean()
         .exec()
+
       return res.status(200).json({ error: false, regions: regionData })
     } catch (err) {
       return res.status(500).json({ error: true, message: err.message })
@@ -94,7 +82,7 @@ module.exports = {
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiQuery {Number} lon Enter longitude of the given point
+   * @apiQuery {Number} long Enter longitude of the given point
    * @apiQuery {Number} lat Enter latitude of the given point
    * @apiQuery {String} profile Enter profile for example:cycling, walking, driving
    * @apiQuery {Number} mintutes Enter time in terms of minutes
@@ -110,13 +98,13 @@ module.exports = {
   async driveTime(req, res) {
     try {
       const {
-        lon, lat, profile, minutes
+        long, lat, profile, minutes
       } = req.query
 
       // validation start.........
 
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(lon)) || lon === null || lon > 180 || lon < -180) {
+      if (isNaN(String(long)) || long === null || long > 180 || long < -180) {
         return res.status(400).json({ error: true, message: "Field 'long' not valid !!!" })
       }
       // eslint-disable-next-line no-restricted-globals
@@ -133,7 +121,7 @@ module.exports = {
 
       const urlBase = process.env.MAPBOX_BASE_URL
 
-      const response = await fetch(`${urlBase}${profile}/${lon},${lat}?contours_minutes=${minutes}&polygons=true&access_token=${process.env.MAPBOX_ACCESS_TOKEN}`)
+      const response = await fetch(`${urlBase}${profile}/${long},${lat}?contours_minutes=${minutes}&polygons=true&access_token=${process.env.MAPBOX_ACCESS_TOKEN}`)
       if (!response.ok) {
         throw new Error("Error retrieving data")
       }
@@ -168,8 +156,6 @@ module.exports = {
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
    * @apiQuery {Number} geoId Enter geoId of the given point
-   * @apiQuery {Number}[page=1] Enter page number, default value is 1
-   * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
    * @apiSuccessExample {json} Success-Response:200
    * {
@@ -181,13 +167,7 @@ module.exports = {
   */
   async msa(req, res) {
     try {
-      const { page = 1, size = 10 } = req.query
       const { geoId } = req.params
-
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(page))) return res.status(400).json({ error: true, message: "Field 'page' must be a number" })
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(size))) return res.status(400).json({ error: true, message: "Field 'size' must be a number" })
 
       const msa = await Region.findOne({
         geoId,
@@ -197,28 +177,20 @@ module.exports = {
         .exec()
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
-      const query = {
+      const msaData = await Region.find({
         geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
             $geometry: msa.geometry
           }
         }
-      }
-      const paginationOptions = {
-        page,
-        limit: size,
-        // populate: [{ path: "_census" }],
-        select: "geoId name geographicLevel",
-        sort: { _id: -1 }
-      }
-      const { docs } = await Region.paginate(query, paginationOptions)
-      // .select("-_id geoId name geographicLevel")
+      })
+        .select("-_id geoId name geographicLevel")
       // .populate({ path: "_census" })
-      // .lean()
-      // .exec()
+        .lean()
+        .exec()
 
-      return res.status(200).json({ error: false, regions: docs })
+      return res.status(200).json({ error: false, regions: msaData })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
@@ -234,8 +206,6 @@ module.exports = {
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
    * @apiParam {Number} geoId Enter geoId of the given point
-   * @apiQuery {Number}[page=1] Enter page number, default value is 1
-   * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
    * @apiSuccessExample {json} Success-Response:200
    * {
@@ -248,12 +218,6 @@ module.exports = {
   async zipcode(req, res) {
     try {
       const { geoId } = req.params
-      const { page = 1, size = 10 } = req.query
-
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(page))) return res.status(400).json({ error: true, message: "Field 'page' must be a number" })
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(size))) return res.status(400).json({ error: true, message: "Field 'size' must be a number" })
 
       const zipcode = await Region.findOne({
         geoId,
@@ -263,24 +227,20 @@ module.exports = {
 
       if (zipcode === null) return res.status(400).json({ error: true, message: `No such Zipcode with geo id ${geoId}` })
 
-      const query = {
+      const zipcodeData = await Region.find({
         geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
             $geometry: zipcode.toObject().geometry
           }
         }
-      }
-      const paginationOptions = {
-        page,
-        limit: size,
-        // populate: [{ path: "_census" }],
-        select: "geoId name geographicLevel",
-        sort: { _id: -1 }
-      }
-      const { docs } = await Region.paginate(query, paginationOptions)
+      })
+        .select("-_id geoId name geographicLevel")
+      // .populate({ path: "_census" })
+        .lean()
+        .exec()
 
-      return res.status(200).json({ error: false, regions: docs })
+      return res.status(200).json({ error: false, regions: zipcodeData })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
