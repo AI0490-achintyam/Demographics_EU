@@ -49,7 +49,11 @@ module.exports = {
             $geometry: searchPoint
           },
         },
-      }).populate({ path: "_census" }).exec()
+      })
+        .select("-_id geoId name geographicLevel")
+        .lean()
+        // .populate({ path: "_census" })
+        .exec()
       return res.status(200).json({ error: false, point: searchRegionData })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
@@ -80,13 +84,22 @@ module.exports = {
     try {
       const getGeoId = await Region.findOne({
         geoId
+      })
+        .lean()
+        .exec()
 
-      }).exec()
       if (getGeoId === null) return res.status(400).json({ error: true, message: `No such geo id ${geoId}` })
 
-      const regionData = await Region.findOne({
-        geoId
-      }).populate({ path: "_census" }).exec()
+      const regionData = await Region.find({
+        geometry: {
+          $geoIntersects: {
+            $geometry: getGeoId.centroid
+          },
+        },
+      })
+        .select("-_id geoId name geographicLevel")
+        .lean()
+      // .populate({ path: "_census" }).exec()
 
       if (regionData === null) {
         return res.status(400).json({ error: true, reason: "Geo ID not found" })

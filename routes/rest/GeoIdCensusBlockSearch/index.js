@@ -11,9 +11,9 @@ module.exports = {
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiQuery {Number} long Enter longitude of the given point
-   * @apiQuery {Number} lat Enter latitude of the given point
-   * @apiQuery {Number} rad Enter scaler distance/radius in terms of meters
+   * @apiQuery {Number} longitude Enter longitude of the given point
+   * @apiQuery {Number} latitude Enter latitude of the given point
+   * @apiQuery {Number} radius Enter scaler distance/radius in terms of miles
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
@@ -25,8 +25,18 @@ module.exports = {
 
   async radiusSearch(req, res) {
     try {
-      const { long, lat, rad } = req.query
+      const
+        {
+          long, lat, radius, page = 1, size = 10
+        } = req.query
+
+      const radiusInMiles = radius / 0.000621371
       // validation start.........
+
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(page))) return res.status(400).json({ error: true, message: "Field 'page' must be a number" })
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(size))) return res.status(400).json({ error: true, message: "Field 'size' must be a number" })
 
       // eslint-disable-next-line no-restricted-globals
       if (isNaN(String(long)) || long === null || long > 180 || long < -180) {
@@ -37,22 +47,33 @@ module.exports = {
         return res.status(400).json({ error: true, message: "Field 'lat' not valid !!!" })
       }
       // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(rad)) || rad < 0 || rad === null) {
-        return res.status(400).json({ error: true, message: "Field 'rad' must be non-negative number!!!" })
+      if (isNaN(String(radiusInMiles)) || radiusInMiles < 0 || radiusInMiles === null) {
+        return res.status(400).json({ error: true, message: "Field 'radius' must be non-negative number!!!" })
       }
       // validation end..........
 
+      // const paginationOptions = {
+      //   page,
+      //   limit: size,
+      //   // populate: [{ path: "_census" }],
+      //   select: "-centroid -geometry",
+      //   sort: { _id: -1 }
+      // }
       const regionData = await Region.find(
         {
           geographicLevel: "Blocks",
           centroid: {
             $nearSphere: {
               $geometry: { type: "Point", coordinates: [Number(long), Number(lat)] },
-              $maxDistance: Number(rad),
+              $maxDistance: Number(radiusInMiles),
             }
           }
         },
-      ).populate({ path: "_census" }).exec()
+      )
+        .select("-_id geoId name geographicLevel")
+        // .populate({ path: "_census" })
+        .lean()
+        .exec()
       return res.status(200).json({ error: false, regions: regionData })
     } catch (err) {
       return res.status(500).json({ error: true, message: err.message })
@@ -153,7 +174,9 @@ module.exports = {
       const msa = await Region.findOne({
         geoId,
         geographicLevel: "MSA"
-      }).exec()
+      })
+        .lean()
+        .exec()
 
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
@@ -161,10 +184,14 @@ module.exports = {
         geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
-            $geometry: msa.toObject().geometry
+            $geometry: msa.geometry
           }
         }
-      }).populate({ path: "_census" }).exec()
+      })
+        .select("-_id geoId name geographicLevel")
+        // .populate({ path: "_census" })
+        .lean()
+        .exec()
       return res.status(200).json({ error: false, regions: regionsWithinMsa })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
@@ -209,7 +236,11 @@ module.exports = {
             $geometry: zipcode.toObject().geometry
           }
         }
-      }).populate({ path: "_census" }).exec()
+      })
+        .select("-_id geoId name geographicLevel")
+        // .populate({ path: "_census" })
+        .lean()
+        .exec()
       return res.status(200).json({ error: false, regions: regionsWithinZipcode })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
