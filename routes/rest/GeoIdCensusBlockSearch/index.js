@@ -1,4 +1,3 @@
-const Openrouteservice = require("openrouteservice-js")
 const Region = require("../../../models/regions")
 
 module.exports = {
@@ -84,9 +83,10 @@ module.exports = {
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiQuery {Number} long Enter longitude of the given point
+   * @apiQuery {Number} lon Enter longitude of the given point
    * @apiQuery {Number} lat Enter latitude of the given point
-   * @apiQuery {Number} Time Enter time in terms of minutes
+   * @apiQuery {String} profile Enter profile for example:cycling, walking, driving
+   * @apiQuery {Number} mintutes Enter time in terms of minutes
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
@@ -98,18 +98,35 @@ module.exports = {
 
   async driveTime(req, res) {
     try {
-      const { long, lat, time } = req.query
+      const {
+        lon, lat, profile, minutes
+      } = req.query
 
-      // use mapbox..........
-      // const Isochrones = new Openrouteservice.Isochrones({ api_key: process.env.DIRECTION_API_KEY })
-      const Isochrones = new Openrouteservice.Isochrones({ api_key: process.env.DIRECTION_API_KEY, host: "http://localhost:8080/ors" })
+      // validation start.........
 
-      const { features } = await Isochrones.calculate({
-        locations: [[Number(long), Number(lat)]],
-        profile: "driving-car",
-        range: [Number(time)],
-        range_type: "time"
-      })
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(lon)) || lon === null || lon > 180 || lon < -180) {
+        return res.status(400).json({ error: true, message: "Field 'long' not valid !!!" })
+      }
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(lat)) || lat === null || lat > 90 || lat < -90) {
+        return res.status(400).json({ error: true, message: "Field 'lat' not valid !!!" })
+      }
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(Number(minutes)) || minutes > 60 || minutes <= 0) {
+        return res.status(400).json({ error: true, message: "Field 'minutes' must be a positive number less than 60!!" })
+      }
+      if (typeof profile !== "string" || !["cycling", "driving", "walking", "transit"].includes(profile)) {
+        return res.status(400).json({ error: true, message: "Please select either cycling, driving, walking, or transit for the 'profile' field !!!" })
+      }
+
+      const urlBase = process.env.MAPBOX_BASE_URL
+
+      const response = await fetch(`${urlBase}${profile}/${lon},${lat}?contours_minutes=${minutes}&polygons=true&access_token=${process.env.MAPBOX_ACCESS_TOKEN}`)
+      if (!response.ok) {
+        throw new Error("Error retrieving data")
+      }
+      const { features } = await response.json()
 
       const regions = await Region.find({
         geographicLevel: "Blocks",
@@ -118,11 +135,14 @@ module.exports = {
             $geometry: features[0].geometry
           }
         }
-      }).exec()
+      })
+        .select("-_id geoId name geographicLevel")
+        // .populate({ path: "_census" })
+        .lean()
+        .exec()
 
-      return res.status(200).json({ error: true, regions })
+      return res.status(200).send({ error: false, regions })
     } catch (error) {
-      // console.log('--------', JSON.stringify(error))
       return res.status(500).json({ error: true, message: error.message })
     }
   },
@@ -164,7 +184,6 @@ module.exports = {
       })
         .lean()
         .exec()
-
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
       const query = {

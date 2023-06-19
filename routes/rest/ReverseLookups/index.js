@@ -28,14 +28,9 @@ module.exports = {
     try {
       const
         {
-          long, lat, page = 1, size = 10
+          long, lat
         } = req.query
       // validation start.........
-
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(page))) return res.status(400).json({ error: true, message: "Field 'page' must be a number" })
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(size))) return res.status(400).json({ error: true, message: "Field 'size' must be a number" })
 
       // eslint-disable-next-line no-restricted-globals
       if (isNaN(String(long)) || long > 180 || long < -180 || long === null) {
@@ -47,29 +42,24 @@ module.exports = {
       }
       // validation end
 
-      const query = {
-        geographicLevel: { $in: ["Country", "State", "County", "Tract", "Places", "MSA", "Zipcode"] },
-        geometry: {
-          $geoIntersects: {
-            $geometry: {
-              type: "Point",
-              coordinates: [Number(long), Number(lat)],
-            }
+      const { searchRegionData } = await Region.find(
+        {
+          geographicLevel: { $in: ["Country", "State", "County", "Tract", "Places", "MSA", "Zipcode"] },
+          geometry: {
+            $geoIntersects: {
+              $geometry: {
+                type: "Point",
+                coordinates: [Number(long), Number(lat)],
+              }
+            },
           },
-        },
-      }
-
-      const paginationOptions = {
-        page,
-        limit: size,
-        // populate: [{ path: "_census" }],
-        select: "geoId name geographicLevel",
-        sort: { _id: -1 }
-      }
-
-      const { docs } = await Region.paginate(query, paginationOptions)
-
-      return res.status(200).json({ error: false, point: docs })
+        }
+      )
+        .select("-_id geoId name geographicLevel")
+        .lean()
+        // .populate({ path: "_census" })
+        .exec()
+      return res.status(200).json({ error: false, regions: searchRegionData })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }

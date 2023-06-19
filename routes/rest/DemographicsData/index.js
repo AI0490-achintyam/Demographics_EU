@@ -110,11 +110,14 @@ module.exports = {
       const { geoId } = req.params
       const censusData = await Census.findOne({
         geoId
-      }).exec()
+      })
+        .select("censusAttributes -_id")
+        .lean()
+        .exec()
 
       if (censusData === null) return res.status(400).json({ error: true, message: `No such geo id ${geoId}` })
 
-      return res.status(200).json({ error: false, censusData })
+      return res.status(200).json({ error: false, censusData: censusData.censusAttributes })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
