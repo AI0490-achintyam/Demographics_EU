@@ -1,4 +1,5 @@
 const Region = require("../../../models/regions")
+const radiusConvert = require("../../../lib/radiusConvert")
 
 module.exports = {
 
@@ -27,11 +28,10 @@ module.exports = {
     try {
       const
         {
-          long, lat, radius, page = 1, size = 10
+          long, lat, radius, page = 1, size = 10 // Note: radius input is in MILES
         } = req.query
 
-      console.log("reqquery ==> ", req.query)
-      const radiusInMiles = radius / 0.000621371
+      // const radiusInMiles = radius / 0.000621371
       // validation start.........
 
       // eslint-disable-next-line no-restricted-globals
@@ -47,19 +47,31 @@ module.exports = {
       if (isNaN(String(lat)) || lat === null || lat > 90 || lat < -90) {
         return res.status(400).json({ error: true, message: "Field 'lat' not valid !!!" })
       }
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(radiusInMiles)) || radiusInMiles < 0 || radiusInMiles === null) {
-        return res.status(400).json({ error: true, message: "Field 'radius' must be non-negative number!!!" })
+      if (
+        // eslint-disable-next-line no-restricted-globals
+        isNaN(String(radius))
+          || radius < 0
+          || radius > 50
+          || radius === null
+      ) {
+        return res.status(400).json({ error: true, message: "Field 'radius' is not valid range!!!" })
       }
       // validation end..........
 
+      // const paginationOptions = {
+      //   page,
+      //   limit: size,
+      //   // populate: [{ path: "_census" }],
+      //   select: "-centroid -geometry",
+      //   sort: { _id: -1 }
+      // }
       const regionData = await Region.find(
         {
           geographicLevel: "Blocks",
           centroid: {
             $nearSphere: {
               $geometry: { type: "Point", coordinates: [Number(long), Number(lat)] },
-              $maxDistance: Number(radiusInMiles),
+              $maxDistance: Number(radiusConvert.miles2meters(radius)), // convert input radius in miles to meters
             }
           }
         },
@@ -73,7 +85,6 @@ module.exports = {
       return res.status(500).json({ error: true, message: err.message })
     }
   },
-
   /**
    *
    * @api {get} /search/drivetime DriveTime Search
