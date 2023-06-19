@@ -31,6 +31,7 @@ module.exports = {
           long, lat, radius, page = 1, size = 10
         } = req.query
 
+      console.log("reqquery ==> ", req.query)
       const radiusInMiles = radius / 0.000621371
       // validation start.........
 
@@ -53,13 +54,6 @@ module.exports = {
       }
       // validation end..........
 
-      // const paginationOptions = {
-      //   page,
-      //   limit: size,
-      //   // populate: [{ path: "_census" }],
-      //   select: "-centroid -geometry",
-      //   sort: { _id: -1 }
-      // }
       const regionData = await Region.find(
         {
           geographicLevel: "Blocks",
@@ -142,7 +136,9 @@ module.exports = {
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiParam {Number} geoId Enter geoId of the given point
+   * @apiQuery {Number} geoId Enter geoId of the given point
+   * @apiQuery {Number}[page=1] Enter page number, default value is 1
+   * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
    * @apiSuccessExample {json} Success-Response:200
    * {
@@ -154,7 +150,14 @@ module.exports = {
   */
   async msa(req, res) {
     try {
+      const { page = 1, size = 10 } = req.query
       const { geoId } = req.params
+
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(page))) return res.status(400).json({ error: true, message: "Field 'page' must be a number" })
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(size))) return res.status(400).json({ error: true, message: "Field 'size' must be a number" })
+
       const msa = await Region.findOne({
         geoId,
         geographicLevel: "MSA"
@@ -164,19 +167,28 @@ module.exports = {
 
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
-      const regionsWithinMsa = await Region.find({
+      const query = {
         geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
             $geometry: msa.geometry
           }
         }
-      })
-        .select("-_id geoId name geographicLevel")
-        // .populate({ path: "_census" })
-        .lean()
-        .exec()
-      return res.status(200).json({ error: false, regions: regionsWithinMsa })
+      }
+      const paginationOptions = {
+        page,
+        limit: size,
+        // populate: [{ path: "_census" }],
+        select: "geoId name geographicLevel",
+        sort: { _id: -1 }
+      }
+      const { docs } = await Region.paginate(query, paginationOptions)
+      // .select("-_id geoId name geographicLevel")
+      // .populate({ path: "_census" })
+      // .lean()
+      // .exec()
+
+      return res.status(200).json({ error: false, regions: docs })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
@@ -192,6 +204,8 @@ module.exports = {
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
    * @apiParam {Number} geoId Enter geoId of the given point
+   * @apiQuery {Number}[page=1] Enter page number, default value is 1
+   * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
    * @apiSuccessExample {json} Success-Response:200
    * {
@@ -202,9 +216,15 @@ module.exports = {
    *  }
   */
   async zipcode(req, res) {
-    const { geoId } = req.params
-
     try {
+      const { geoId } = req.params
+      const { page = 1, size = 10 } = req.query
+
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(page))) return res.status(400).json({ error: true, message: "Field 'page' must be a number" })
+      // eslint-disable-next-line no-restricted-globals
+      if (isNaN(String(size))) return res.status(400).json({ error: true, message: "Field 'size' must be a number" })
+
       const zipcode = await Region.findOne({
         geoId,
         geographicLevel: "Zipcode"
@@ -213,19 +233,24 @@ module.exports = {
 
       if (zipcode === null) return res.status(400).json({ error: true, message: `No such Zipcode with geo id ${geoId}` })
 
-      const regionsWithinZipcode = await Region.find({
+      const query = {
         geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
             $geometry: zipcode.toObject().geometry
           }
         }
-      })
-        .select("-_id geoId name geographicLevel")
-        // .populate({ path: "_census" })
-        .lean()
-        .exec()
-      return res.status(200).json({ error: false, regions: regionsWithinZipcode })
+      }
+      const paginationOptions = {
+        page,
+        limit: size,
+        // populate: [{ path: "_census" }],
+        select: "geoId name geographicLevel",
+        sort: { _id: -1 }
+      }
+      const { docs } = await Region.paginate(query, paginationOptions)
+
+      return res.status(200).json({ error: false, regions: docs })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
