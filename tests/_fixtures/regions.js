@@ -1099,5 +1099,85 @@ module.exports = [{
       ]
     ]
   }
+},
+{
+  _id: mongoose.Types.ObjectId("64901073169ce765b602f083"),
+  geoId: "60650408351",
+  name: "Noxx Restaurant Indoor stadium with geolevel Zipcode,Howrah",
+  geographicLevel: "Zipcode",
+  centroid: {
+    type: "Point",
+    coordinates: [
+      88.30447644273812,
+      22.579885123151428
+    ]
+  },
+  geometry: {
+    type: "Polygon",
+    coordinates: [
+      [
+        [
+          88.30445716436043,
+          22.579885897089994
+        ],
+        [
+          88.30447325761492,
+          22.57986856085803
+        ],
+        [
+          88.30449320654418,
+          22.579882336971593
+        ],
+        [
+          88.30447241942488,
+          22.579899208838583
+        ],
+        [
+          88.30445716436043,
+          22.579885897089994
+        ]
+      ]
+    ]
+  }
+},
+{
+  _id: mongoose.Types.ObjectId("649013b13763d887dc360d34"),
+  geoId: "60650408352",
+  name: "Fiesta Restaurant Indoor stadium with geolevel Zipcode,Howrah",
+  geographicLevel: "Zipcode",
+  centroid: {
+    type: "Point",
+    coordinates: [
+      88.30462815489756,
+      22.580035886031126
+    ]
+  },
+  geometry: {
+    type: "Polygon",
+    coordinates: [
+      [
+        [
+          88.30461524676628,
+          22.58003743390738
+        ],
+        [
+          88.30462882544913,
+          22.58002319344648
+        ],
+        [
+          88.30464290704703,
+          22.5800312424023
+        ],
+        [
+          88.30463100474412,
+          22.58004780467617
+        ],
+        [
+          88.30461524676628,
+          22.58003743390738
+        ]
+      ]
+    ]
+  }
 }
 ]

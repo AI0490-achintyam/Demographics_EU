@@ -19,7 +19,7 @@ test.beforeEach(async (t) => {
   t.context.query = {
     long: 88.30601613954104,
     lat: 22.58074787234567,
-    rad: 155,
+    radius: 50,
   }
   // eslint-disable-next-line no-param-reassign
   t.context.invalidquery = {
@@ -124,7 +124,7 @@ test.serial("radius.get: Verify response after entering boolean value in latitud
 
 test.serial("radius.get: Verify response after entering negative value in radius ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, rad: -100 }
+    query: { ...t.context.query, radius: -100 }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -132,7 +132,7 @@ test.serial("radius.get: Verify response after entering negative value in radius
 
 test.serial("radius.get: Verify response after entering string value in radius ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, rad: "x" }
+    query: { ...t.context.query, radius: "x" }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -140,7 +140,7 @@ test.serial("radius.get: Verify response after entering string value in radius "
 
 test.serial("radius.get: Verify response after entering array value in radius ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, rad: ["x"] }
+    query: { ...t.context.query, radius: ["x"] }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -148,7 +148,7 @@ test.serial("radius.get: Verify response after entering array value in radius ",
 
 test.serial("radius.get: Verify response after entering undefined value in radius ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, rad: undefined }
+    query: { ...t.context.query, radius: undefined }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -156,7 +156,7 @@ test.serial("radius.get: Verify response after entering undefined value in radiu
 
 test.serial("radius.get: Verify response after entering null value in radius ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, rad: null }
+    query: { ...t.context.query, radius: null }
   })
   t.is(status, 400)
   t.true(body.error)
@@ -164,7 +164,7 @@ test.serial("radius.get: Verify response after entering null value in radius ", 
 
 test.serial("radius.get: Verify response after entering boolean value in radius ", async (t) => {
   const { status, body } = await runRouteHandler(get, {
-    query: { ...t.context.query, rad: true }
+    query: { ...t.context.query, radius: true }
   })
   t.is(status, 400)
   t.true(body.error)
