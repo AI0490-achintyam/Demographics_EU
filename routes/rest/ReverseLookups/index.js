@@ -40,7 +40,7 @@ module.exports = {
 
       const searchRegionData = await Region.find(
         {
-          geographicLevel: { $in: ["Country", "State", "County", "Tract", "Places", "MSA", "Zipcode"] },
+          geographicLevel: { $in: ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivions"] },
           geometry: {
             $geoIntersects: {
               $geometry: {
