@@ -68,7 +68,7 @@ module.exports = {
         .lean()
         .exec()
 
-      return res.status(200).json({ error: false, regions: regionData })
+      return res.status(200).json({ error: false, blocks: regionData })
     } catch (err) {
       return res.status(500).json({ error: true, message: err.message })
     }
@@ -127,7 +127,7 @@ module.exports = {
       }
       const { features } = await response.json()
 
-      const regions = await Region.find({
+      const driveTimeRes = await Region.find({
         geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
@@ -140,7 +140,7 @@ module.exports = {
         .lean()
         .exec()
 
-      return res.status(200).send({ error: false, regions })
+      return res.status(200).send({ error: false, blocks: driveTimeRes })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
@@ -190,7 +190,7 @@ module.exports = {
         .lean()
         .exec()
 
-      return res.status(200).json({ error: false, regions: msaData })
+      return res.status(200).json({ error: false, blocks: msaData })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
@@ -240,7 +240,7 @@ module.exports = {
         .lean()
         .exec()
 
-      return res.status(200).json({ error: false, regions: zipcodeData })
+      return res.status(200).json({ error: false, blocks: zipcodeData })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
