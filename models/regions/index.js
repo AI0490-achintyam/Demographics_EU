@@ -10,7 +10,7 @@ const RegionSchema = new mongoose.Schema({
   name: String,
   geographicLevel: {
     type: String,
-    enum: ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode"]
+    enum: ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"]
   },
   // _censusdata: {
   //   type: mongoose.Schema.Types.ObjectId,

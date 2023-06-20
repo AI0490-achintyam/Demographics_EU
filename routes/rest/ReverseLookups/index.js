@@ -40,7 +40,7 @@ module.exports = {
 
       const searchRegionData = await Region.find(
         {
-          geographicLevel: { $in: ["Country", "State", "County", "Tract", "Places", "MSA", "Zipcode"] },
+          geographicLevel: { $in: ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"] },
           geometry: {
             $geoIntersects: {
               $geometry: {
@@ -99,7 +99,26 @@ module.exports = {
 
       if (getGeoId === null) return res.status(400).json({ error: true, message: `No such geo id ${geoId}` })
 
+      const censusHierarchy = [ // Ref: https://tinyurl.com/ytff8ndh
+        "Blocks",
+        "Block Group",
+        "Tract",
+        "County",
+        "State",
+        "Country"
+      ]
+
+      const higherGeographicLevels = censusHierarchy.slice(
+        censusHierarchy.indexOf(getGeoId.geographicLevel) + 1
+      )
+
       const searchByGeoId = await Region.find({
+        geographicLevel: {
+          $in: [
+            "Places", "MSA", "Zipcode", "County Subdivisions",
+            ...higherGeographicLevels
+          ]
+        },
         geometry: {
           $geoIntersects: {
             $geometry: getGeoId.centroid
