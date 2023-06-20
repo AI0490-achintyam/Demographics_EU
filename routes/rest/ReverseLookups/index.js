@@ -84,12 +84,6 @@ module.exports = {
   async searchByGeoId(req, res) {
     try {
       const { geoId } = req.params
-      const { page = 1, size = 10 } = req.query
-
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(page))) return res.status(400).json({ error: true, message: "Field 'page' must be a number" })
-      // eslint-disable-next-line no-restricted-globals
-      if (isNaN(String(size))) return res.status(400).json({ error: true, message: "Field 'size' must be a number" })
 
       const getGeoId = await Region.findOne({
         geoId
