@@ -34,7 +34,7 @@ module.exports = {
       const query = { $text: { $search: name } }
 
       if (geographicLevel !== undefined) {
-        if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivions"].includes(geographicLevel)) {
+        if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"].includes(geographicLevel)) {
           query.geographicLevel = geographicLevel
         } else {
           return res.status(400).json({ error: true, message: "Field 'geographicLevel' not found !!!" })
