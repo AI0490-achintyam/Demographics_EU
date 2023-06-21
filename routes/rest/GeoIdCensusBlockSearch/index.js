@@ -126,7 +126,7 @@ module.exports = {
         throw new Error("Error retrieving data")
       }
       const { features } = await response.json()
-
+      console.log(features)
       const driveTimeRes = await Region.find({
         geographicLevel: "Blocks",
         centroid: {
