@@ -48,12 +48,22 @@ module.exports = {
         select: "-centroid -geometry",
         sort: { _id: -1 }
       }
-      const { docs } = await Region.paginate(
+      const {
+        docs, totalDocs,
+        totalPages
+      } = await Region.paginate(
         query,
         paginationOptions
       )
 
-      return res.status(200).json({ error: false, regions: docs })
+      return res.status(200).json({
+        error: false,
+        regions: docs,
+        totalData: totalDocs,
+        totalPages,
+        page: Number(page),
+        size: Number(size)
+      })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
@@ -96,12 +106,22 @@ module.exports = {
         select: "-centroid -geometry",
         sort: { _id: -1 }
       }
-      const { docs } = await Region.paginate(
+      const {
+        docs, totalDocs,
+        totalPages
+      } = await Region.paginate(
         query,
         paginationOptions
       )
 
-      return res.status(200).json({ error: false, regions: docs })
+      return res.status(200).json({
+        error: false,
+        regions: docs,
+        totalData: totalDocs,
+        totalPages,
+        page: Number(page),
+        size: Number(size)
+      })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
