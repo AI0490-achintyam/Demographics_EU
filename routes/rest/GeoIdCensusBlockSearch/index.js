@@ -98,7 +98,7 @@ module.exports = {
   async driveTime(req, res) {
     try {
       const {
-        long, lat, profile, minutes
+        long, lat, minutes
       } = req.query
 
       // validation start.........
@@ -115,13 +115,10 @@ module.exports = {
       if (isNaN(Number(minutes)) || minutes > 60 || minutes <= 0) {
         return res.status(400).json({ error: true, message: "Field 'minutes' must be a positive number less than 60!!" })
       }
-      if (typeof profile !== "string" || !["cycling", "driving", "walking", "transit"].includes(profile)) {
-        return res.status(400).json({ error: true, message: "Please select either cycling, driving, walking, or transit for the 'profile' field !!!" })
-      }
 
       const urlBase = process.env.MAPBOX_BASE_URL
 
-      const response = await fetch(`${urlBase}${profile}/${long},${lat}?contours_minutes=${minutes}&polygons=true&access_token=${process.env.MAPBOX_ACCESS_TOKEN}`)
+      const response = await fetch(`${urlBase}driving/${long},${lat}?contours_minutes=${minutes}&polygons=true&access_token=${process.env.MAPBOX_ACCESS_TOKEN}`)
       if (!response.ok) {
         throw new Error("Error retrieving data")
       }
