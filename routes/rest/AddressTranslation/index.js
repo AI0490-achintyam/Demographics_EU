@@ -27,13 +27,6 @@ module.exports = {
         throw new Error(`Request failed with status ${response.status}`)
       }
       const data = await response.json()
-      console.log("data ==> ", data)
-      // const output = {
-      //   placeName: data.features[0].place_name,
-      //   longitude: data.features[0].center[0],
-      //   latitude: data.features[0].center[1]
-
-      // }
 
       const output = data.features.map((p) => ({
         placeName: p.place_name,
@@ -43,7 +36,6 @@ module.exports = {
 
       return res.status(200).json({ error: false, data: output })
     } catch (error) {
-      console.error(error)
       return res.status(500).json({ error: true, message: "Address translation not found" })
     }
   }
