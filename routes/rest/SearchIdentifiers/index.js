@@ -27,15 +27,22 @@ module.exports = {
       geographicLevel, name, page = 1, size = 10
     } = req.query
 
+    // convert geographicLevel into sentence case
+    const geoSentenceCase = geographicLevel
+      .toLowerCase()
+      .charAt(0)
+      .toUpperCase() + geographicLevel.toLowerCase()
+      .slice(1)
+
     try {
       if (typeof name !== "string" || name.trim() === "") {
         return res.status(400).json({ error: true, message: "Field 'name' not valid format!!!" })
       }
       const query = { $text: { $search: name } }
 
-      if (geographicLevel !== undefined) {
-        if (typeof geographicLevel === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"].includes(geographicLevel)) {
-          query.geographicLevel = geographicLevel
+      if (geoSentenceCase !== undefined) {
+        if (typeof geoSentenceCase === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"].includes(geoSentenceCase)) {
+          query.geographicLevel = geoSentenceCase
         } else {
           return res.status(400).json({ error: true, message: "Field 'geographicLevel' not found !!!" })
         }
