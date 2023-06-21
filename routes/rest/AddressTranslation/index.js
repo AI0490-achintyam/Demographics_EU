@@ -21,9 +21,22 @@ module.exports = {
     */
   async getCoordinates(req, res) {
     try {
-      return res.status(501).send("Not Implemented!")
+      const { address } = req.query
+      const response = await fetch(`${process.env.MAPBOX_GEOCODING_URL} ${address}.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}`)
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
+      const data = await response.json()
+
+      const output = data.features.map((p) => ({
+        placeName: p.place_name,
+        longitude: p.center[0],
+        latitude: p.center[1]
+      }))
+
+      return res.status(200).json({ error: false, data: output })
     } catch (error) {
-      return res.status(500).json({ error: true, message: error.message })
+      return res.status(500).json({ error: true, message: "Address translation not found" })
     }
   }
 }
