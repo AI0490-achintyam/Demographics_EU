@@ -45,6 +45,8 @@ const DemographicsData = require("./DemographicsData")
 router.post("/signup", signup.post) // UNAUTHENTICATED
 router.post("/login", login.post) // UNAUTHENTICATED
 
+router.get("/demographicsData/radius", DemographicsData.byRadius)
+
 router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 
 // router.post("/forgotpassword", forgotpassword.startWorkflow) // UNAUTHENTICATED; AJAX
@@ -79,7 +81,7 @@ router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
 router.post("/demographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
 router.get("/demographicsData/custompolygon", DemographicsData.byCustomPolygon)
 router.get("/demographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
-router.get("/demographicsData/radius", DemographicsData.byRadius)
+// router.get("/demographicsData/radius", DemographicsData.byRadius)
 router.get("/demographicsData/drivetime", DemographicsData.byDriveTime)
 
 // Search particular regions data.................

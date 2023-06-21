@@ -1,0 +1,323 @@
+"""
+File: census_aggregator.py
+Date: 06-14-2023
+Version: v1.1.0
+
+Description:
+The 'aggregate_census_data' function aggregates census variables of given census block group data. It returns a dictionary of aggregated variables and their approximated Margin of errors.
+
+Changes Made:
+- Updated the script to return a sorted output dictionary.
+- Modified the code to support returning output when called from the command-line interface.
+
+Dependencies:
+- sys
+- json
+- copy
+- functools
+- itertools
+- math.sqrt from the math module
+- numpy
+
+"""
+
+import base64
+import sys
+import json
+import copy
+import functools
+import itertools
+from math import sqrt
+import numpy as np
+
+# from typing import List, Optional
+
+
+# List of all census variables:
+allcolsLst = ['B01003_E001', 'B01003_M001', 'B02001_E001', 'B02001_E002', 'B02001_E003', 'B02001_E004', 'B02001_E005', 'B02001_E006', 'B02001_E007', 'B02001_E008', 'B02001_E009', 'B02001_E010', 'B02001_M001', 'B02001_M002', 'B02001_M003', 'B02001_M004', 'B02001_M005', 'B02001_M006', 'B02001_M007', 'B02001_M008', 'B02001_M009', 'B02001_M010', 'B03003_E001', 'B03003_E002', 'B03003_E003', 'B03003_M001', 'B03003_M002', 'B03003_M003', 'B07201_E001', 'B07201_E002', 'B07201_E003', 'B07201_E004', 'B07201_E007', 'B07201_E010', 'B07201_E013', 'B07201_E014', 'B07201_M001', 'B07201_M002', 'B07201_M003', 'B07201_M004', 'B07201_M007', 'B07201_M010', 'B07201_M013', 'B07201_M014', 'B07202_E001', 'B07202_E002', 'B07202_E003', 'B07202_E004', 'B07202_E007', 'B07202_E010', 'B07202_E013', 'B07202_E014', 'B07202_M001', 'B07202_M002', 'B07202_M003', 'B07202_M004', 'B07202_M007', 'B07202_M010', 'B07202_M013', 'B07202_M014', 'B07203_E001', 'B07203_E002', 'B07203_E003', 'B07203_E004', 'B07203_E007', 'B07203_E010', 'B07203_E011', 'B07203_M001', 'B07203_M002', 'B07203_M003', 'B07203_M004', 'B07203_M007', 'B07203_M010', 'B07203_M011', 'B11001_E001', 'B11001_E002', 'B11001_E003', 'B11001_E004', 'B11001_E005', 'B11001_E006', 'B11001_E007', 'B11001_E008', 'B11001_E009', 'B11001_M001', 'B11001_M002', 'B11001_M003', 'B11001_M004', 'B11001_M005', 'B11001_M006', 'B11001_M007', 'B11001_M008', 'B11001_M009', 'B11012_E001', 'B11012_E002', 'B11012_E003', 'B11012_E004', 'B11012_E005', 'B11012_E006', 'B11012_E007', 'B11012_E008', 'B11012_E009', 'B11012_E010', 'B11012_E011', 'B11012_E012', 'B11012_E013', 'B11012_E014', 'B11012_E015', 'B11012_E016', 'B11012_E017', 'B11012_M001', 'B11012_M002', 'B11012_M003', 'B11012_M004', 'B11012_M005', 'B11012_M006', 'B11012_M007', 'B11012_M008', 'B11012_M009', 'B11012_M010', 'B11012_M011', 'B11012_M012', 'B11012_M013', 'B11012_M014', 'B11012_M015', 'B11012_M016', 'B11012_M017', 'B12001_E001', 'B12001_E002', 'B12001_E003', 'B12001_E004', 'B12001_E005', 'B12001_E006', 'B12001_E007', 'B12001_E008', 'B12001_E009', 'B12001_E010', 'B12001_E011', 'B12001_E012', 'B12001_E013', 'B12001_E014', 'B12001_E015', 'B12001_E016', 'B12001_E017', 'B12001_E018', 'B12001_E019', 'B12001_M001', 'B12001_M002', 'B12001_M003', 'B12001_M004', 'B12001_M005', 'B12001_M006', 'B12001_M007', 'B12001_M008', 'B12001_M009', 'B12001_M010', 'B12001_M011', 'B12001_M012', 'B12001_M013', 'B12001_M014', 'B12001_M015', 'B12001_M016', 'B12001_M017', 'B12001_M018', 'B12001_M019', 'B17010_E001', 'B17010_E002', 'B17010_E003', 'B17010_E004', 'B17010_E005', 'B17010_E006', 'B17010_E007', 'B17010_E008', 'B17010_E009', 'B17010_E010', 'B17010_E011', 'B17010_E012', 'B17010_E013', 'B17010_E014', 'B17010_E015', 'B17010_E016', 'B17010_E017', 'B17010_E018', 'B17010_E019', 'B17010_E020', 'B17010_E021', 'B17010_E022', 'B17010_E023', 'B17010_E024', 'B17010_E025', 'B17010_E026', 'B17010_E027', 'B17010_E028', 'B17010_E029', 'B17010_E030', 'B17010_E031', 'B17010_E032', 'B17010_E033', 'B17010_E034', 'B17010_E035', 'B17010_E036', 'B17010_E037', 'B17010_E038', 'B17010_E039', 'B17010_E040', 'B17010_E041', 'B17010_M001', 'B17010_M002', 'B17010_M003', 'B17010_M004', 'B17010_M005', 'B17010_M006', 'B17010_M007', 'B17010_M008', 'B17010_M009', 'B17010_M010', 'B17010_M011', 'B17010_M012', 'B17010_M013', 'B17010_M014', 'B17010_M015', 'B17010_M016', 'B17010_M017', 'B17010_M018', 'B17010_M019', 'B17010_M020', 'B17010_M021', 'B17010_M022', 'B17010_M023', 'B17010_M024', 'B17010_M025', 'B17010_M026', 'B17010_M027', 'B17010_M028', 'B17010_M029', 'B17010_M030', 'B17010_M031', 'B17010_M032', 'B17010_M033', 'B17010_M034', 'B17010_M035', 'B17010_M036', 'B17010_M037', 'B17010_M038', 'B17010_M039', 'B17010_M040', 'B17010_M041', 'B19001_E001', 'B19001_E002', 'B19001_E003', 'B19001_E004', 'B19001_E005', 'B19001_E006', 'B19001_E007', 'B19001_E008', 'B19001_E009', 'B19001_E010', 'B19001_E011', 'B19001_E012', 'B19001_E013', 'B19001_E014', 'B19001_E015', 'B19001_E016', 'B19001_E017', 'B19001_M001', 'B19001_M002', 'B19001_M003', 'B19001_M004', 'B19001_M005', 'B19001_M006', 'B19001_M007', 'B19001_M008', 'B19001_M009', 'B19001_M010', 'B19001_M011', 'B19001_M012', 'B19001_M013', 'B19001_M014', 'B19001_M015', 'B19001_M016', 'B19001_M017', 'B19013_E001', 'B19013_M001', 'B19301_E001', 'B19301_M001', 'B21001_E001', 'B21001_E002', 'B21001_E003', 'B21001_M001', 'B21001_M002', 'B21001_M003', 'B23025_E001', 'B23025_E002', 'B23025_E003', 'B23025_E004', 'B23025_E005', 'B23025_E006', 'B23025_E007', 'B23025_M001', 'B23025_M002', 'B23025_M003', 'B23025_M004', 'B23025_M005', 'B23025_M006', 'B23025_M007', 'B25001_E001', 'B25001_M001', 'B25002_E001', 'B25002_E002', 'B25002_E003', 'B25002_M001', 'B25002_M002', 'B25002_M003', 'B25003_E001', 'B25003_E002', 'B25003_E003', 'B25003_M001', 'B25003_M002', 'B25003_M003', 'B25010_E001', 'B25010_E002', 'B25010_E003', 'B25010_M001', 'B25010_M002', 'B25010_M003', 'B25024_E001', 'B25024_E002', 'B25024_E003', 'B25024_E004', 'B25024_E005', 'B25024_E006', 'B25024_E007', 'B25024_E008', 'B25024_E009', 'B25024_E010', 'B25024_E011', 'B25024_M001', 'B25024_M002', 'B25024_M003', 'B25024_M004', 'B25024_M005', 'B25024_M006', 'B25024_M007', 'B25024_M008', 'B25024_M009', 'B25024_M010', 'B25024_M011', 'B25034_E001', 'B25034_E002', 'B25034_E003', 'B25034_E004', 'B25034_E005', 'B25034_E006', 'B25034_E007', 'B25034_E008', 'B25034_E009', 'B25034_E010', 'B25034_E011', 'B25034_M001', 'B25034_M002', 'B25034_M003', 'B25034_M004', 'B25034_M005', 'B25034_M006', 'B25034_M007', 'B25034_M008', 'B25034_M009', 'B25034_M010', 'B25034_M011', 'B25064_E001', 'B25064_M001', 'B25077_E001', 'B25077_M001', 'B25081_E001', 'B25081_E002', 'B25081_E009', 'B25081_M001', 'B25081_M002', 'B25081_M009', 'B26001_E001', 'B26001_M001', 'D_B01001_E001', 'D_B01001_E002', 'D_B01001_E003', 'D_B01001_E004', 'D_B01001_E005', 'D_B01001_E006', 'D_B01001_E007', 'D_B01001_E008', 'D_B01001_E009', 'D_B01001_E010', 'D_B01001_E011', 'D_B01001_E012', 'D_B01001_E013', 'D_B01001_E014', 'D_B01001_E015', 'D_B01001_E016', 'D_B01001_E017', 'D_B01001_E018', 'D_B01001_E019', 'D_B01001_E020', 'D_B01001_E021', 'D_B01001_E022', 'D_B01001_E023', 'D_B01001_E024', 'D_B01001_M001', 'D_B01001_M002', 'D_B01001_M003', 'D_B01001_M004', 'D_B01001_M005', 'D_B01001_M006', 'D_B01001_M007', 'D_B01001_M008', 'D_B01001_M009', 'D_B01001_M010', 'D_B01001_M011', 'D_B01001_M012', 'D_B01001_M013', 'D_B01001_M014', 'D_B01001_M015', 'D_B01001_M016', 'D_B01001_M017', 'D_B01001_M018', 'D_B01001_M019', 'D_B01001_M020', 'D_B01001_M021', 'D_B01001_M022', 'D_B01001_M023', 'D_B01001_M024', 'D_B14007_E001', 'D_B14007_E002', 'D_B14007_E003', 'D_B14007_E004', 'D_B14007_E005', 'D_B14007_E006', 'D_B14007_E007', 'D_B14007_E008', 'D_B14007_E009', 'D_B14007_E010', 'D_B14007_M001', 'D_B14007_M002', 'D_B14007_M003', 'D_B14007_M004', 'D_B14007_M005', 'D_B14007_M006', 'D_B14007_M007', 'D_B14007_M008', 'D_B14007_M009', 'D_B14007_M010', 'D_B15003_E001', 'D_B15003_E002', 'D_B15003_E003', 'D_B15003_E004', 'D_B15003_E005', 'D_B15003_E006', 'D_B15003_E007', 'D_B15003_E008', 'D_B15003_E009', 'D_B15003_M001', 'D_B15003_M002', 'D_B15003_M003', 'D_B15003_M004', 'D_B15003_M005', 'D_B15003_M006', 'D_B15003_M007', 'D_B15003_M008', 'D_B15003_M009', 'F_B01003_E001', 'F_B01003_E002', 'F_B01003_E003', 'F_B01003_M001', 'F_B01003_M002', 'F_B01003_M003']
+
+# the base variables:
+total_population = 'B01003_E001'
+total_households = 'B11001_E001'
+housing_units = 'B25001_E001'
+
+groupQuarters_population = 'B26001_E001'
+
+# derived variables - Population universe
+age_distribution = [i for i in allcolsLst if 'B01001_E' in i]
+school_enrollment = [i for i in allcolsLst if 'B14007_E' in i]
+education_attainment = [i for i in allcolsLst if 'B15003_E' in i]
+race = [i for i in allcolsLst if 'B02001_E' in i]
+hisp = [i for i in allcolsLst if 'B03003_E' in i]
+marital_Status = [i for i in allcolsLst if 'B12001_E' in i]
+veteran_status = [i for i in allcolsLst if 'B21001_E' in i]
+employment_status = [i for i in allcolsLst if 'B23025_E' in i]
+mobility_metro = [i for i in allcolsLst if 'B07201_E' in i]
+mobility_micro = [i for i in allcolsLst if 'B07202_E' in i]
+mobility_not_msa = [i for i in allcolsLst if 'B07203_E' in i]
+
+# populaton forecasts: Population universe.
+forecast_estimatesLst = [i for i in allcolsLst if 'F_B01003_E' in i]
+
+
+# derived variables - housing units universe
+occupancy_status = [i for i in allcolsLst if 'B25002_E' in i]
+tenure = [i for i in allcolsLst if 'B25003_E' in i]
+units_in_structure = [i for i in allcolsLst if 'B25024_E' in i]
+year_structure_built = [i for i in allcolsLst if 'B25034_E' in i]
+mortgage_status = [i for i in allcolsLst if 'B25081_E' in i]
+avg_hh_size_of_occ_hu = [i for i in allcolsLst if 'B25010_E' in i]
+
+
+# derived variables - households universe
+householdsType = [i for i in allcolsLst if 'B11001_E' in i]
+households_byType = [i for i in allcolsLst if 'B11012_E' in i]
+household_income = [i for i in allcolsLst if 'B19001_E' in i]
+poverty_status_families = [i for i in allcolsLst if 'B17010_E' in i]
+
+# Income variables: individuals
+income_per_capita = [i for i in allcolsLst if 'B19301_E' in i]
+
+# Income variables: housing units
+median_hh_income = [i for i in allcolsLst if 'B19013_E' in i]
+median_rental_value = [i for i in allcolsLst if 'B25064_E' in i]
+median_property_value = [i for i in allcolsLst if 'B25077_E' in i]
+
+# combining the above lists into single universe list:
+population_univ = [age_distribution, school_enrollment, education_attainment, race, hisp, marital_Status, veteran_status, employment_status, mobility_metro, mobility_micro, mobility_not_msa, forecast_estimatesLst, [groupQuarters_population]]
+housing_unit_univ = [occupancy_status, tenure, units_in_structure, year_structure_built, mortgage_status, avg_hh_size_of_occ_hu]
+household_univ = [householdsType, households_byType, household_income, poverty_status_families]
+monetary_variables = [income_per_capita, median_hh_income, median_rental_value, median_property_value]
+
+
+# List of census varialbles - excluding base variables
+population_univ = list(itertools.chain.from_iterable(population_univ))
+housing_unit_univ = list(itertools.chain.from_iterable(housing_unit_univ))
+monetary_variables = list(itertools.chain.from_iterable(monetary_variables))
+household_univ = list(itertools.chain.from_iterable(household_univ))
+
+# List of census varialbles - including base variables
+population_univ_all = [total_population] + population_univ
+housing_unit_univ_all = [housing_units] + housing_unit_univ
+
+population_univ_all.sort()
+housing_unit_univ_all.sort()
+housing_unit_univ.sort()
+monetary_variables.sort()
+
+# MOE variables:
+populationMOE_univ_all = [i.replace('_E', '_M') for i in population_univ_all]
+housing_unitMOE_univ_all = [i.replace('_E', '_M') for i in housing_unit_univ_all]
+householdMOE_univ = [i.replace('_E', '_M') for i in household_univ]
+
+majorMOE_cols = populationMOE_univ_all + housing_unitMOE_univ_all + householdMOE_univ
+majoruniv_cols = population_univ_all + housing_unit_univ_all + household_univ
+monetary_moe_cols = [i.replace('_E', '_M') for i in monetary_variables]
+
+
+
+
+# The function to aggregate the census variables:
+
+# def aggregate_census_data(census_data_collection: List[str], selected_censusBlocks: List[str], user_input: Optional[List[str]] = None) -> None:
+def aggregate_census_data(census_data_collection, selected_censusBlocks, user_input=None):
+    
+    """
+    Aggregate census data based on the selected census blocks and user specified census variables.
+
+    Args:
+        census_data_collection (pymongo.collection.Collection): The MongoDB collection containing census block group documents within the user-specified radius.
+        selected_censusBlocks (list): A list of census block geoids that fall within the user-specified radius.
+        user_input (list, optional): A list of census variables queried by the user to aggregate. Defaults to None.
+
+    Returns:
+        dict: A dictionary containing the aggregated census data for the specified variables. If user_input is None, it contains all variables.
+
+    Raises:
+        ValueError: If the census variables are invalid or not found in the data collection.
+
+    Notes:
+    - This function aggregates census data based on the selected census blocks and the census variables provided by the user.
+    - The census data is aggregated based on the selected census blocks and the specified census variables.
+    - If user_input is None, the function aggregates all available census variables.
+    - If user_input is provided, the function aggregates only the specified census variables.
+    - The function returns a dictionary with the aggregated census variables and their MOEs (Margin of Errors).
+
+    Examples:
+    >>> aggregate_census_data(census_data_collection, selected_blocks, user_input=['B01003_E001', 'B02001_E002', 'B02001_E006'])
+
+
+    """
+
+    # Step 1: Convert the bytes and string datatypes of Census blocks base variable data into desired datatypes:
+
+    for collection in census_data_collection:
+        block_data = collection['censusBlocks']
+        key = json.loads(list(block_data.keys())[0])
+        key = tuple(tuple(sublist) for sublist in key)
+        value = np.frombuffer(base64.b64decode([i for i in block_data.values()][0])).reshape((-1, 4))
+        collection['censusBlocks'] = {key: value}
+
+
+    # List of Census Block Broups (CBG) GeoIDs within the specified radius:
+    selected_CBGs_ = set([i[:12] for i in selected_censusBlocks])
+
+    # function to get total population, housing units, households of selected section of CBGs:
+    def get_selectedBlocks_indexes(censusBlock_dict_, CBG_id_func):
+
+        key_ = list(list(censusBlock_dict_.keys())[0])
+        values_ = list(censusBlock_dict_.values())[0]
+        
+        cbg_key_array = np.asarray(key_)
+
+        matching_indexes_ = np.where(np.isin(cbg_key_array[:,1], np.asarray(selected_censusBlocks_CBG_dict[CBG_id])))
+
+        base_census_value_arr_ = values_[matching_indexes_][:, 1:]
+
+        # the output will be in the format of:
+        #  ['B01003_E001', 'B11001_E001', 'B25001_E001'] that is  [totalPopulation, households, housingUnits] of the CBG
+        CBG_totalBaseVar_values = np.sum(base_census_value_arr_, axis=0)
+
+        return CBG_totalBaseVar_values
+
+    
+    # In order to reduce the time taken for CBG data filtering, we need the below dictionary:
+    selected_censusBlocks_CBG_dict = {CBG: [] for CBG in selected_CBGs_}
+
+    for censusBlock in selected_censusBlocks:
+        CBG = censusBlock[:12]
+        if CBG in selected_censusBlocks_CBG_dict:
+            selected_censusBlocks_CBG_dict[CBG].append(censusBlock)
+
+
+    # Step 2: Filter the documents:
+    # filter only the CBG documents within user specified radius :
+    CBG_lookup_dict = {CBG_doc['geoId']: CBG_doc for CBG_doc in census_data_collection}
+    selected_CBG_collection_dict = {CBG_id:CBG_lookup_dict[CBG_id] for CBG_id in selected_CBGs_ if CBG_id in CBG_lookup_dict}
+
+
+    error_moe = [-666666666, -999999999, -888888888, -222222222, -333333333, -555555555, '*', '**', '***', None]
+
+    # Step 3: Calculate the total estimates and MOE of the selected Census blocks within each CBG:
+    #  and returning the values to selected_CBG_collection_dict's censusAttributes:
+    for CBG_id, CBG_doc in selected_CBG_collection_dict.items():
+
+        blocks_base_value_arr = get_selectedBlocks_indexes(CBG_doc['censusBlocks'], CBG_id)
+        CBG_totalvalues = np.asarray([CBG_doc['censusAttributes']['B01003_E001'],
+                                      CBG_doc['censusAttributes']['B11001_E001'],
+                                      CBG_doc['censusAttributes']['B25001_E001']])
+    
+        blocks_base_value_arr = blocks_base_value_arr / CBG_totalvalues
+
+        pop_proportion = blocks_base_value_arr[0]
+        hh_proportion = blocks_base_value_arr[1]
+        hu_proportion = blocks_base_value_arr[2]
+
+        pop_proportion_sqrt = sqrt(pop_proportion)
+        hh_proportion_sqrt = sqrt(hh_proportion)
+        hu_proportion_sqrt = sqrt(hu_proportion)
+
+        # calculate the derived census variables using the above calculated proportion and base variables:
+        # Leave the monetary variables as it is, as they are median values:
+        if pop_proportion>0:
+            for pop_var in population_univ_all:
+                CBG_doc['censusAttributes'][pop_var] = int(CBG_doc['censusAttributes'][pop_var] * pop_proportion)
+                # WARNINGL handle the special cases in MOE:
+                cbg_moe = CBG_doc['censusAttributes'][pop_var.replace('_E', '_M')]
+                CBG_doc['censusAttributes'][pop_var.replace('_E', '_M')] = cbg_moe if cbg_moe in error_moe else int(cbg_moe*pop_proportion_sqrt)
+
+        if hh_proportion>0:
+            for hh_var in household_univ:
+                CBG_doc['censusAttributes'][hh_var] = int(CBG_doc['censusAttributes'][hh_var] * hh_proportion)
+                cbg_moe = CBG_doc['censusAttributes'][hh_var.replace('_E', '_M')]
+                CBG_doc['censusAttributes'][hh_var.replace('_E', '_M')] = cbg_moe if cbg_moe in error_moe else int(cbg_moe*hh_proportion_sqrt)
+
+        if hu_proportion>0:
+            for hu_var in housing_unit_univ:
+                CBG_doc['censusAttributes'][hu_var] = int(CBG_doc['censusAttributes'][hu_var] * hu_proportion)
+                cbg_moe = CBG_doc['censusAttributes'][hu_var.replace('_E', '_M')]
+                CBG_doc['censusAttributes'][hu_var.replace('_E', '_M')] = cbg_moe if cbg_moe in error_moe else int(cbg_moe*hu_proportion_sqrt)
+
+    inner_arrays = [np.array(list(val['censusAttributes'].values())) for val in selected_CBG_collection_dict.values()]
+    census_value_arr = np.array(inner_arrays)
+
+    # Step 4: Calculate the Total estimates and MOE for the selected market:
+    # Find the position/index of user inputs (the list of census variables queried by user) from the allcolsLst
+    if user_input:
+        user_input.sort()
+        # get both Estimates and MOEs of user given census variables:
+        result_list = list(set([i.replace('_M','_E') for i in user_input]))
+        user_input = []
+        for item in result_list:
+            modified_item = item.replace('_E', '_M')
+            user_input.append(item)
+            user_input.append(modified_item)
+        indices = [allcolsLst.index(col) for col in user_input]
+    else:
+        user_input = copy.copy(allcolsLst)
+        indices = [i for i in range(len(allcolsLst))]
+
+    # Functions to aggregate/approximate the census variables:
+    def sum_column(col_indx):
+        return np.sum(census_value_arr[:, col_indx], axis=0)
+
+    def approx_moe_column(col_indx):
+        return np.sqrt(np.sum(census_value_arr[:, col_indx] ** 2))
+
+    def approx_income_moe_column(col_indx, weight_):
+        return np.sqrt(np.sum(weight_ * (census_value_arr[:, col_indx] ** 2)))
+
+    def income_wgt_avg(col_indx):
+        income_column = census_value_arr[:, col_indx]
+        weighted_avg = np.average(income_column, weights=total_population_col)
+        return weighted_avg
+
+    # Get the final output in form of dictionary:
+    output_dict = dict()
+    total_population_col = census_value_arr[:, 0]
+
+    for i in range(len(user_input)):
+        col = user_input[i]
+        # Estimates:
+        if col in majoruniv_cols:
+            value = int(sum_column(indices[i]))
+
+        elif col in monetary_variables:
+            value = int(income_wgt_avg(indices[i]))
+
+        elif col in majorMOE_cols:
+            value = int(approx_moe_column(indices[i]))
+
+        elif col in monetary_moe_cols:
+            weight = output_dict[col.replace('_M', '_E')]
+            value = approx_income_moe_column(indices[i], weight)
+
+        # insert the variable and its value to result dictionary:
+        output_dict[col] = value
+
+    output_dict = dict(sorted(output_dict.items()))
+    
+    return output_dict
+
+
+## For Direct Execution as a script:
+if __name__ == '__main__':
+    mongo_collection_name_string = sys.argv[1]   # List of Census block group documents within the specified radius.
+    geoid_list = sys.argv[2].split('|') #  List of Census block geoids (as strings) within the specified radius.
+    optional_aggregatable_fields_list = None #  List of queried census variables by the API user (optional).
+        
+    # If 3rd argument is passed, save it as optional_aggregatable_fields_list
+    if len(sys.argv) >= 4 and len(sys.argv[3]) > 0:
+        optional_aggregatable_fields_list = sys.argv[3].split('|')
+    
+    # Convert the string variable into a list of dictionaries using eval()
+    mongo_collection_name_string = json.loads(mongo_collection_name_string)
+
+    output = aggregate_census_data(
+        mongo_collection_name_string,
+        geoid_list,
+        optional_aggregatable_fields_list
+    )
+    
+    # sys.stdout.write(json.dumps(output))
+    print(json.dumps(output))
