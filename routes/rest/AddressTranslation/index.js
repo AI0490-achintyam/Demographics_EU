@@ -22,7 +22,7 @@ module.exports = {
   async getCoordinates(req, res) {
     try {
       const { address } = req.query
-      const response = await fetch(`${process.env.MAPBOX_GEOCODING_URL} ${address}.json?access_token=${process.env.MAPBOX_ACCESS_TOKEN}`)
+      const response = await fetch(`${process.env.MAPBOX_GEOCODING_URL}${address}.json?types=place&access_token=${process.env.MAPBOX_ACCESS_TOKEN}`)
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`)
       }
@@ -36,6 +36,7 @@ module.exports = {
 
       return res.status(200).json({ error: false, data: output })
     } catch (error) {
+      // console.log("error ==> ", error)
       return res.status(500).json({ error: true, message: "Address translation not found" })
     }
   }
