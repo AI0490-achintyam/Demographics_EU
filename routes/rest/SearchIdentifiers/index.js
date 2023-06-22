@@ -1,4 +1,4 @@
-const { capitalCase } = require("change-case")
+const { titleCase } = require("title-case")
 const Region = require("../../../models/regions")
 
 module.exports = {
@@ -25,7 +25,7 @@ module.exports = {
 
   async searchByName(req, res) {
     const {
-      geographicLevel, name, page = 1, size = 10
+      geographicLevels, name, page = 1, size = 10
     } = req.query
 
     try {
@@ -34,13 +34,19 @@ module.exports = {
       }
       const query = { $text: { $search: name } }
 
-      if (geographicLevel !== undefined) {
-      // convert geographicLevel into capital case
+      if (geographicLevels !== undefined) {
+      // convert geographicLevels into title case
 
-        const geoSentenceCase = capitalCase(geographicLevel)
+        const geoTitleCase = titleCase(geographicLevels)
+        const geoArr = geoTitleCase.split(", ")
 
-        if (typeof geoSentenceCase === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"].includes(geoSentenceCase)) {
-          query.geographicLevel = geoSentenceCase
+        const allArr = [
+          "Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"
+        ]
+        const includesAllElements = geoArr.filter((element) => allArr.includes(element))
+
+        if (includesAllElements.length !== 0) {
+          query.geographicLevel = includesAllElements
         } else {
           return res.status(400).json({ error: true, message: "Field 'geographicLevel' not found !!!" })
         }

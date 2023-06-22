@@ -61,7 +61,8 @@
     "randomstring": "^1.1.5",
     "rimraf": "^5.0.1",
     "serve-favicon": "^2.5.0",
-    "shapefile-to-geojson": "^1.0.1"
+    "shapefile-to-geojson": "^1.0.1",
+    "title-case": "^3.0.3"
   },
   "eslintIgnore": [
     "public/"
