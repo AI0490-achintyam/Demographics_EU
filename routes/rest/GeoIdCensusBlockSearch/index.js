@@ -116,7 +116,7 @@ module.exports = {
         return res.status(400).json({ error: true, message: "Field 'minutes' must be a positive number less than 60!!" })
       }
 
-      const urlBase = process.env.MAPBOX_BASE_URL
+      const urlBase = process.env.MAPBOX_DRIVETIME_URL
 
       const response = await fetch(`${urlBase}driving/${long},${lat}?contours_minutes=${minutes}&polygons=true&access_token=${process.env.MAPBOX_ACCESS_TOKEN}`)
       if (!response.ok) {
