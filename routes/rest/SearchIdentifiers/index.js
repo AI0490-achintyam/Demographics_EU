@@ -1,3 +1,4 @@
+const { capitalCase } = require("change-case")
 const Region = require("../../../models/regions")
 
 module.exports = {
@@ -34,11 +35,9 @@ module.exports = {
       const query = { $text: { $search: name } }
 
       if (geographicLevel !== undefined) {
-      // convert geographicLevel into sentence case
-        const geoSentenceCase = geographicLevel
-          .charAt(0)
-          .toUpperCase() + geographicLevel.toLowerCase()
-          .slice(1)
+      // convert geographicLevel into capital case
+
+        const geoSentenceCase = capitalCase(geographicLevel)
 
         if (typeof geoSentenceCase === "string" && ["Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"].includes(geoSentenceCase)) {
           query.geographicLevel = geoSentenceCase
