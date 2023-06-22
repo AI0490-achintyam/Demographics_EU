@@ -11,7 +11,7 @@ module.exports = {
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
    *
    * @apiQuery {String} Name Enter name to search
-   * @apiQuery {Enum} [geographicalLevel] Enter geographicalLevel
+   * @apiQuery {Enum} [geographicalLevels] Enter one or multiple geographicalLevels
    * @apiQuery {Number}[page=1] Enter page number, default value is 1
    * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
