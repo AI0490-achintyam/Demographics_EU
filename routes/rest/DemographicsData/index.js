@@ -219,7 +219,7 @@ module.exports = {
         fs.writeFile(`./tmp/${reqId}/blockGeoids.json`, blockGeoIds),
       ])
 
-      const { stdout: censusData } = await execa(
+      const { stdout } = await execa(
         process.env.PYTHON_EXE_PATH,
         [
           process.env.CENSUS_AGGREGATOR_SCRIPT_PATH,
@@ -229,7 +229,8 @@ module.exports = {
           `./tmp/${reqId}/blockGeoids.json`
         ]
       )
-      return res.status(200).json({ error: false, censusData })
+      const sanitizedOutput = stdout.replace(/NaN/g, "null") // remove NaN values (coming from Python?)
+      return res.status(200).json({ error: false, censusData: JSON.parse(sanitizedOutput) })
     } catch (err) {
       req.logger.error(err)
       return res.status(500).json({ error: true, message: err.message.slice(0, 1000) }) // error msg from python script failures may be extremely long, so slicing it
