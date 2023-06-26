@@ -1,6 +1,8 @@
 const execa = require("execa")
 const { rimraf } = require("rimraf")
-const fs = require("fs")
+const fs = require("node:fs/promises")
+const cuid = require("cuid")
+
 const radiusConvert = require("../../../lib/radiusConvert")
 
 const Census = require("../../../models/census")
@@ -147,6 +149,7 @@ module.exports = {
    *  }
   */
   async byRadius(req, res) {
+    const reqId = cuid() // unique identifier for the endpoint call
     try {
       const
         {
@@ -210,19 +213,28 @@ module.exports = {
       // console.log("cbgDocuments[0] ==> ", JSON.stringify(cbgDocuments.slice(0, 1), null, 2))
 
       /* Write the arguments to temp files [TBD] */
+      await fs.mkdir(`./tmp/${reqId}`) // first, create an unique tmp folder
+      await Promise.all([
+        fs.writeFile(`./tmp/${reqId}/cbgDocuments.json`, JSON.stringify(cbgDocuments)),
+        fs.writeFile(`./tmp/${reqId}/blockGeoids.json`, blockGeoIds),
+      ])
 
       const { stdout: censusData } = await execa(
         process.env.PYTHON_EXE_PATH,
         [
           process.env.CENSUS_AGGREGATOR_SCRIPT_PATH,
-          JSON.stringify(cbgDocuments),
-          blockGeoIds
+          // JSON.stringify(cbgDocuments),
+          `./tmp/${reqId}/cbgDocuments.json`,
+          // blockGeoIds
+          `./tmp/${reqId}/blockGeoids.json`
         ]
       )
       return res.status(200).json({ error: false, censusData })
     } catch (err) {
       req.logger.error(err)
       return res.status(500).json({ error: true, message: err.message.slice(0, 1000) }) // error msg from python script failures may be extremely long, so slicing it
+    } finally {
+      // await rimraf(`./tmp/${reqId}`) // delete the tmp folder
     }
   },
 

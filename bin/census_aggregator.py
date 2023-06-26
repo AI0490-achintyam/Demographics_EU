@@ -29,6 +29,7 @@ import functools
 import itertools
 from math import sqrt
 import numpy as np
+import argparse
 
 # from typing import List, Optional
 
@@ -299,25 +300,44 @@ def aggregate_census_data(census_data_collection, selected_censusBlocks, user_in
     
     return output_dict
 
+## This code will enable the python function to read data from text files when passed as argument.
+
 
 ## For Direct Execution as a script:
-if __name__ == '__main__':
-    mongo_collection_name_string = sys.argv[1]   # List of Census block group documents within the specified radius.
-    geoid_list = sys.argv[2].split('|') #  List of Census block geoids (as strings) within the specified radius.
-    optional_aggregatable_fields_list = None #  List of queried census variables by the API user (optional).
-        
-    # If 3rd argument is passed, save it as optional_aggregatable_fields_list
-    if len(sys.argv) >= 4 and len(sys.argv[3]) > 0:
-        optional_aggregatable_fields_list = sys.argv[3].split('|')
+if __name__ == "__main__":
     
-    # Convert the string variable into a list of dictionaries using eval()
-    mongo_collection_name_string = json.loads(mongo_collection_name_string)
+    # Command Line Usage:
+    # 1) If user queries for any selected census variables:
+    #    $ python census_aggregator.py file1.txt file2.txt
+    
+    # 2) If user requests for all census variables:
+    #    $ python census_aggregator.py file1.txt file2.txt file3.txt
+    
+    
+    parser = argparse.ArgumentParser(description="US Census Aggregator Function")
+    parser.add_argument("file1", type=str, help="Path to the file containing Census block group documents within the radius")
+    parser.add_argument("file2", type=str, help="Path to the file with Census block geoids within the radius")
+    parser.add_argument("file3", type=str, nargs="?", help="Path to optional third file with user queried census variables")
 
-    output = aggregate_census_data(
-        mongo_collection_name_string,
-        geoid_list,
-        optional_aggregatable_fields_list
-    )
+    args = parser.parse_args()
+    
+    # Read data from text files
+    with open(args.file1, 'r') as file:
+        # file1_data = eval(file.read())
+        file1_data = json.loads(file.read()) # Note: if this line fails, please use the above line.
+        
+    with open(args.file2, 'r') as file:
+        file2_data = str(eval(file.read())).split('|')
+    
+    file3_data = None
+    if args.file3:
+        with open(args.file3, 'r') as file:
+            file3_data = file.read().split('|')
+
+    # Pass the data to the function
+    aggregate_census_data(file1_data, file2_data, file3_data)
+    
     
     # sys.stdout.write(json.dumps(output))
     print(json.dumps(output))
+
