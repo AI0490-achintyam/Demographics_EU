@@ -42,7 +42,6 @@ module.exports = {
         const geoTitleCase = titleCase(geographicLevels)
         const geoArr = geoTitleCase.split(",")
 
-        console.log("geoArr ==> ", geoArr)
         const allArr = [
           "Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"
         ]
