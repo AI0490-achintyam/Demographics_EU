@@ -223,9 +223,7 @@ module.exports = {
         process.env.PYTHON_EXE_PATH,
         [
           process.env.CENSUS_AGGREGATOR_SCRIPT_PATH,
-          // JSON.stringify(cbgDocuments),
           `./tmp/${reqId}/cbgDocuments.json`,
-          // blockGeoIds
           `./tmp/${reqId}/blockGeoids.json`
         ]
       )
@@ -235,7 +233,7 @@ module.exports = {
       req.logger.error(err)
       return res.status(500).json({ error: true, message: err.message.slice(0, 1000) }) // error msg from python script failures may be extremely long, so slicing it
     } finally {
-      // await rimraf(`./tmp/${reqId}`) // delete the tmp folder
+      await rimraf(`./tmp/${reqId}`) // delete the tmp folder
     }
   },
 
