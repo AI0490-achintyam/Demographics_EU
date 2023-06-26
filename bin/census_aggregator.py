@@ -327,7 +327,7 @@ if __name__ == "__main__":
         file1_data = json.loads(file.read()) # Note: if this line fails, please use the above line.
         
     with open(args.file2, 'r') as file:
-        file2_data = str(eval(file.read())).split('|')
+        file2_data = (file.read()).split('|')
     
     file3_data = None
     if args.file3:
@@ -335,9 +335,10 @@ if __name__ == "__main__":
             file3_data = file.read().split('|')
 
     # Pass the data to the function
-    aggregate_census_data(file1_data, file2_data, file3_data)
+    output = aggregate_census_data(file1_data, file2_data, file3_data)
     
     
     # sys.stdout.write(json.dumps(output))
     print(json.dumps(output))
+
 
