@@ -136,7 +136,7 @@ module.exports = {
         .lean()
         .exec()
 
-      return res.status(200).send({ error: false, blocks: driveTimeRes })
+      return res.status(200).json({ error: false, blocks: driveTimeRes })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
