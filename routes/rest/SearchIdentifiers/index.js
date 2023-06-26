@@ -24,11 +24,13 @@ module.exports = {
     */
 
   async searchByName(req, res) {
-    const {
-      geographicLevels, name, page = 1, size = 10
-    } = req.query
-
     try {
+      const {
+        geographicLevels, name, page = 1, size = 10
+      } = req.query
+
+      if (typeof geographicLevels !== "string") return res.status(200).json({ error: true, message: "Field 'geographicalLevels not a string !!!" })
+
       if (typeof name !== "string" || name.trim() === "") {
         return res.status(400).json({ error: true, message: "Field 'name' not valid format!!!" })
       }
@@ -38,8 +40,9 @@ module.exports = {
       // convert geographicLevels into title case
 
         const geoTitleCase = titleCase(geographicLevels)
-        const geoArr = geoTitleCase.split(", ")
+        const geoArr = geoTitleCase.split(",")
 
+        console.log("geoArr ==> ", geoArr)
         const allArr = [
           "Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"
         ]
