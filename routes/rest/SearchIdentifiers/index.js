@@ -36,7 +36,7 @@ module.exports = {
       }
       const query = { $text: { $search: name } }
 
-      if (geographicLevels !== undefined) {
+      if (geographicLevels !== "string") {
       // convert geographicLevels into title case
 
         const geoTitleCase = titleCase(geographicLevels)
