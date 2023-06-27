@@ -1,5 +1,6 @@
 const test = require("ava")
 const sinon = require("sinon")
+const fetchMock = require("fetch-mock")
 // const Joi = require("joi")
 const {
   runRouteHandler, setupMongo, teardownMongo, setupFixtures, teardownFixtures
@@ -14,15 +15,9 @@ test.beforeEach(setupFixtures)
 test.afterEach(teardownFixtures)
 /* ******************************* */
 
-test.beforeEach(async () => {
-  process.env.MAPBOX_BASE_URL = "https://api.mapbox.com/isochrone/v1/mapbox/"
-})
-
-test.afterEach(async () => {
-  delete process.env.MAPBOX_BASE_URL
-})
-
 test.beforeEach(async (t) => {
+  process.env.MAPBOX_DRIVETIME_URL = "https://api.mapbox.com/isochrone/v1/mapbox/"
+  process.env.MAPBOX_ACCESS_TOKEN = "my-token"
   // eslint-disable-next-line no-param-reassign
   t.context.query = {
     long: 88.30601613954104,
@@ -34,12 +29,70 @@ test.beforeEach(async (t) => {
   }
 })
 
-test.skip("drivetime.get: Verify response after entering valid data in longitude,latitude,profile and minutes", async (t) => {
+test.afterEach(async () => {
+  delete process.env.MAPBOX_BASE_URL
+  delete process.env.MAPBOX_ACCESS_TOKEN
+  fetchMock.restore()
+})
+
+test.serial("drivetime.get: Verify response after entering valid data in longitude,latitude,profile and minutes", async (t) => {
+  fetchMock.get("https://api.mapbox.com/isochrone/v1/mapbox/driving/88.30601613954104,22.58074787234567?contours_minutes=50&polygons=true&access_token=my-token", {
+    status: 200,
+    features: [{
+      properties: {
+        fill: "#bf4040",
+        fillOpacity: 0.33,
+        "fill-opacity": 0.33,
+        fillColor: "#bf4040",
+        color: "#bf4040",
+        contour: 50,
+        opacity: 0.33,
+        metric: "time"
+      },
+      geometry: {
+        coordinates: [
+          [
+            [
+              88.30461524676628,
+              22.58003743390738
+            ],
+            [
+              88.30462882544913,
+              22.58002319344648
+            ],
+            [
+              88.30464290704703,
+              22.5800312424023
+            ],
+            [
+              88.30463100474412,
+              22.58004780467617
+            ],
+            [
+              88.30461524676628,
+              22.58003743390738
+            ]
+          ]
+        ],
+        type: "Polygon"
+      },
+      type: "Feature"
+    }]
+  })
+
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
   t.is(status, 200)
   t.false(body.error)
+})
+
+test.serial("drivetime.get: Verify response after entering valid data in longitude,latitude,profile and minutes without mocking the output", async (t) => {
+  const { status, body } = await runRouteHandler(get, {
+    query: t.context.query
+  })
+  t.is(status, 500)
+  t.true(body.error)
 })
 
 test.serial("drivetime.get: Verify response after entering invalid query", async (t) => {
