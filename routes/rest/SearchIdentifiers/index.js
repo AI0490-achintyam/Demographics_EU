@@ -29,15 +29,13 @@ module.exports = {
         geographicLevels, name, page = 1, size = 10
       } = req.query
 
-      if (typeof geographicLevels !== "string") return res.status(200).json({ error: true, message: "Field 'geographicalLevels not a string !!!" })
-
       if (typeof name !== "string" || name.trim() === "") {
         return res.status(400).json({ error: true, message: "Field 'name' not valid format!!!" })
       }
       const query = { $text: { $search: name } }
 
-      if (geographicLevels !== undefined) {
-      // convert geographicLevels into title case
+      if (typeof geographicLevels === "string") {
+        // convert geographicLevels into title case
 
         const geoTitleCase = titleCase(geographicLevels)
         const geoArr = geoTitleCase.split(",")
@@ -50,7 +48,7 @@ module.exports = {
         if (includesAllElements.length !== 0) {
           query.geographicLevel = includesAllElements
         } else {
-          return res.status(400).json({ error: true, message: "Field 'geographicLevel' not found !!!" })
+          return res.status(400).json({ error: true, message: "No valid geographic level(s) specified !!!" })
         }
       }
 
