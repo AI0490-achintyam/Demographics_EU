@@ -11,7 +11,7 @@ module.exports = {
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
    *
    * @apiQuery {String} Name Enter name to search
-   * @apiQuery {Enum} [geographicalLevel] Enter geographicalLevel
+   * @apiQuery {Enum} [geographicalLevels] Enter one or multiple geographicalLevels
    * @apiQuery {Number}[page=1] Enter page number, default value is 1
    * @apiQuery {Number}[size=10] Enter size of data, default value is 10
    *
@@ -24,11 +24,13 @@ module.exports = {
     */
 
   async searchByName(req, res) {
-    const {
-      geographicLevels, name, page = 1, size = 10
-    } = req.query
-
     try {
+      const {
+        geographicLevels, name, page = 1, size = 10
+      } = req.query
+
+      if (typeof geographicLevels !== "string") return res.status(200).json({ error: true, message: "Field 'geographicalLevels not a string !!!" })
+
       if (typeof name !== "string" || name.trim() === "") {
         return res.status(400).json({ error: true, message: "Field 'name' not valid format!!!" })
       }
@@ -38,7 +40,7 @@ module.exports = {
       // convert geographicLevels into title case
 
         const geoTitleCase = titleCase(geographicLevels)
-        const geoArr = geoTitleCase.split(", ")
+        const geoArr = geoTitleCase.split(",")
 
         const allArr = [
           "Country", "State", "County", "Tract", "Block Group", "Blocks", "Places", "MSA", "Zipcode", "County Subdivisions"
