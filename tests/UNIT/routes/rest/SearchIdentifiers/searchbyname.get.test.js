@@ -27,7 +27,7 @@ test.beforeEach(async (t) => {
   }
 })
 
-test.serial("regions.get: Verify response after entering valid data in geographicLevel and name", async (t) => {
+test.serial("regions.get: Verify response after entering valid data in name", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     query: t.context.query
   })
