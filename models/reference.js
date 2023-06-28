@@ -3,16 +3,11 @@ const mongoosePaginate = require("mongoose-paginate-v2")
 
 const ReferenceSchema = new mongoose.Schema({
 
-  tableId: String,
-  concept: String,
+  name: String,
+  category: String,
   universe: String,
-  variableId: {
-    type: String,
-    required: true
-  },
-  lebel: String,
-  moe: String, // Eastimate/margin of error
-  description: String
+  attribute: String,
+  isMOE: Boolean
 
 })
 

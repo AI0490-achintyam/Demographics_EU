@@ -40,7 +40,7 @@ const DemographicsData = require("./DemographicsData")
 
 // const region = require("./region")
 // const census = require("./census")
-// const references = require("./references")
+const references = require("./references")
 
 router.post("/signup", signup.post) // UNAUTHENTICATED
 router.post("/login", login.post) // UNAUTHENTICATED
@@ -77,7 +77,7 @@ router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
 
 // DemographicsData routes................
 router.post("/demographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
-router.get("/demographicsData/custompolygon", DemographicsData.byCustomPolygon)
+router.post("/demographicsData/custompolygon", DemographicsData.byCustomPolygon)
 router.get("/demographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
 router.get("/demographicsData/radius", DemographicsData.byRadius)
 router.get("/demographicsData/drivetime", DemographicsData.byDriveTime)
@@ -89,8 +89,8 @@ router.get("/demographicsData/drivetime", DemographicsData.byDriveTime)
 // router.get("/census/:geoid", census.get)
 
 // Search list of  references.................
-// router.get("/references/censusattributes", references.censusattributes)
-// router.get("/references/years", references.years)
+router.get("/references/categories", references.categories)
+router.get("/references/attributes", references.attributes)
 // router.get("/references/msa", references.msa)
 // router.get("/references/forecastyears", references.forecastYears)
 
