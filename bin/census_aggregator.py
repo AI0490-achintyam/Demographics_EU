@@ -327,7 +327,7 @@ if __name__ == "__main__":
         file1_data = json.loads(file.read()) # Note: if this line fails, please use the above line.
         
     with open(args.file2, 'r') as file:
-        file2_data = (file.read()).split('|')
+        file2_data = file.read().split('|')
     
     file3_data = None
     if args.file3:
