@@ -3,27 +3,27 @@ const router = express.Router()
 
 const { expressjwt } = require("express-jwt")
 const multer = require("multer")
-const fs = require("fs")
-const cuid = require("cuid")
+// const fs = require("fs")
+// const cuid = require("cuid")
 
 // Configure storage for uploaded files
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const folderName = cuid() // Generate a unique folder name using the current timestamp
-    const destination = `public/upload/rdoc/${folderName}`
-    // Create the destination folder if it doesn't exist
-    if (!fs.existsSync(destination)) {
-      fs.mkdirSync(destination)
-    }
-    cb(null, destination) // Set the destination folder for uploaded files
-  },
-  filename: (req, file, cb) => {
-    const fileExtension = file.originalname.split(".").pop()// Get the file extension
-    // eslint-disable-next-line prefer-template
-    cb(null, Date.now() + "-" + file.fieldname + "." + fileExtension) // Set the file name with extension
-  }
-})
-const upload = multer({ storage })
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     const folderName = cuid() // Generate a unique folder name using the current timestamp
+//     const destination = `public/upload/rdoc/${folderName}`
+//     // Create the destination folder if it doesn't exist
+//     if (!fs.existsSync(destination)) {
+//       fs.mkdirSync(destination)
+//     }
+//     cb(null, destination) // Set the destination folder for uploaded files
+//   },
+//   filename: (req, file, cb) => {
+//     const fileExtension = file.originalname.split(".").pop()// Get the file extension
+//     // eslint-disable-next-line prefer-template
+//     cb(null, Date.now() + "-" + file.fieldname + "." + fileExtension) // Set the file name with extension
+//   }
+// })
+// const upload = multer({ storage })
 
 const checkJwt = expressjwt({ secret: process.env.SECRET, algorithms: ["HS256"] }) // the JWT auth check middleware
 
@@ -76,11 +76,21 @@ router.get("/reverseLookup/point", ReverseLookups.searchByLongLat)
 router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
 
 // DemographicsData routes................
-router.post("/demographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
-router.post("/demographicsData/custompolygon", DemographicsData.byCustomPolygon)
+// router.post("/demographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
+// router.post("/demographicsData/custompolygon", DemographicsData.byCustomPolygon)
 router.get("/demographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
 router.get("/demographicsData/radius", DemographicsData.byRadius)
 router.get("/demographicsData/drivetime", DemographicsData.byDriveTime)
+router.get(
+  "/demographicsData/geojson",
+  multer({
+    dest: "./tmp",
+    // filename(req, file, cb) {
+    //   cb(null, `${cuid()}-${file.filename}`)
+    // }
+  }).single("geojson"),
+  DemographicsData.byGeoJson
+)
 
 // Search particular regions data.................
 // router.get("/region/:id", region.get)
