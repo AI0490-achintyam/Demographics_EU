@@ -81,7 +81,7 @@ router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
 router.get("/demographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
 router.get("/demographicsData/radius", DemographicsData.byRadius)
 router.get("/demographicsData/drivetime", DemographicsData.byDriveTime)
-router.get(
+router.post(
   "/demographicsData/geojson",
   multer({
     dest: "./tmp",

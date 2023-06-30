@@ -258,20 +258,18 @@ module.exports = {
 
   /**
    *
-   * @api {get} /demographicsData/geojson DriveTime Search
+   * @api {get} /demographicsData/geojson GeoJson
    * @apiName GeoJSONSearch
    * @apiGroup Demographics Data
    * @apiVersion  1.0.0
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiQuery {Number} long Enter longitude of the given point
-   * @apiQuery {Number} lat Enter latitude of the given point
-   * @apiQuery {Number} range Enter range in terms of meters
+   * @apiQuery {file} geojson Enter file of type geojson or json
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
-        "regions": [
+        "censusData": [
           {}
         ]
    *  }
