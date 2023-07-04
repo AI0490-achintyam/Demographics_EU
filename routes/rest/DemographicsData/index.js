@@ -75,7 +75,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /demographicsData/radius Search By radius
+   * @api {post} /demographicsData/radius Search By radius
    * @apiName searchByradius
    * @apiGroup Demographics Data
    * @apiVersion  1.0.0
@@ -219,7 +219,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /demographicsData/drivetime DriveTime Search
+   * @api {post} /demographicsData/drivetime DriveTime Search
    * @apiName DriveTimeSearch
    * @apiGroup Demographics Data
    * @apiVersion  1.0.0
