@@ -79,9 +79,9 @@ router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
 // router.post("/demographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
 // router.post("/demographicsData/custompolygon", DemographicsData.byCustomPolygon)
 router.get("/demographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
-router.get("/demographicsData/radius", DemographicsData.byRadius)
-router.get("/demographicsData/drivetime", DemographicsData.byDriveTime)
-router.get(
+router.post("/demographicsData/radius", DemographicsData.byRadius)
+router.post("/demographicsData/drivetime", DemographicsData.byDriveTime)
+router.post(
   "/demographicsData/geojson",
   multer({
     dest: "./tmp",
