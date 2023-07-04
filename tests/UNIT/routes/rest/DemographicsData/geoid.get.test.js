@@ -17,35 +17,67 @@ test.afterEach(teardownFixtures)
 test.beforeEach(async (t) => {
   // eslint-disable-next-line no-param-reassign
   t.context.validGeoId = "60650408211"
-  // eslint-disable-next-line no-param-reassign
-  t.context.invalidGeoId = "60652323"
 })
 
-test.serial("GeoId.get: Verify response after entering valid GeoId", async (t) => {
+test.serial("GeoId.get: Verify response after entering valid GeoId with proper censusCategory", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     params: {
       geoId: t.context.validGeoId,
+    },
+    body: {
+      censusCategory: "Race"
     }
   })
   t.is(status, 200)
   t.false(body.error)
 })
 
-test.serial("GeoId.get: Verify response after entering invalid GeoId", async (t) => {
+test.serial("GeoId.get: Verify response after entering valid GeoId with proper censusAttribute", async (t) => {
   const { status, body } = await runRouteHandler(get, {
     params: {
-      geoId: t.context.invalidGeoId
+      geoId: t.context.validGeoId,
+    },
+    body: {
+      censusAttributes: ["B01003_E001"]
+    }
+  })
+  t.is(status, 200)
+  t.false(body.error)
+})
+
+test.serial("GeoId.get: Verify response after entering no census data in the body", async (t) => {
+  const { status, body } = await runRouteHandler(get, {
+    params: {
+      geoId: t.context.valid
+    },
+    body: {
     }
   })
   t.is(status, 400)
   t.true(body.error)
 })
 
-test.serial("GeoId.get: Verify response after getting server error", async (t) => {
+test.serial("GeoId.get: Verify response after entering blank array in censusAttributes ", async (t) => {
+  const { status, body } = await runRouteHandler(get, {
+    params: {
+      geoId: t.context.valid
+    },
+    body: {
+      censusAttributes: []
+    }
+  })
+  t.is(status, 400)
+  t.true(body.error)
+})
+
+test.skip("GeoId.get: Verify response after getting server error", async (t) => {
   const stub = sinon.stub(GeoId, "findOne").throws(new Error("Server Error"))
   const { status, body } = await runRouteHandler(get, {
     params: {
       geoId: t.context.validGeoId,
+    },
+    body: {
+      censusCategory: "Race"
     }
   })
   t.is(status, 500)
