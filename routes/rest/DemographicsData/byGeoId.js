@@ -33,7 +33,7 @@ module.exports = {
       let references = []
 
       if (Array.isArray(censusAttributes)) {
-        references = await Reference.findOne({ attribute: { $in: censusAttributes } }).lean().exec()
+        references = await Reference.find({ attribute: { $in: censusAttributes } }).lean().exec()
       } else if (typeof censusCategory === "string") {
         references = await Reference.find({ category: censusCategory }).lean().exec()
       }
