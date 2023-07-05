@@ -2,28 +2,6 @@ const express = require("express")
 const router = express.Router()
 
 const { expressjwt } = require("express-jwt")
-const multer = require("multer")
-// const fs = require("fs")
-// const cuid = require("cuid")
-
-// Configure storage for uploaded files
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     const folderName = cuid() // Generate a unique folder name using the current timestamp
-//     const destination = `public/upload/rdoc/${folderName}`
-//     // Create the destination folder if it doesn't exist
-//     if (!fs.existsSync(destination)) {
-//       fs.mkdirSync(destination)
-//     }
-//     cb(null, destination) // Set the destination folder for uploaded files
-//   },
-//   filename: (req, file, cb) => {
-//     const fileExtension = file.originalname.split(".").pop()// Get the file extension
-//     // eslint-disable-next-line prefer-template
-//     cb(null, Date.now() + "-" + file.fieldname + "." + fileExtension) // Set the file name with extension
-//   }
-// })
-// const upload = multer({ storage })
 
 const checkJwt = expressjwt({ secret: process.env.SECRET, algorithms: ["HS256"] }) // the JWT auth check middleware
 
@@ -41,6 +19,9 @@ const DemographicsData = require("./DemographicsData")
 // const region = require("./region")
 // const census = require("./census")
 const references = require("./references")
+
+// DemographicsData routes................
+router.use("/demographicsdata", DemographicsData)
 
 router.post("/signup", signup.post) // UNAUTHENTICATED
 router.post("/login", login.post) // UNAUTHENTICATED
@@ -74,23 +55,6 @@ router.get("/search/zipcode/:geoId", GeoIdCensusBlockSearch.zipcode)
 // Reverse Lookups routes ...............
 router.get("/reverseLookup/point", ReverseLookups.searchByLongLat)
 router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
-
-// DemographicsData routes................
-// router.post("/demographicsData/customfile", upload.single("rdocs"), DemographicsData.byShapeFile)
-// router.post("/demographicsData/custompolygon", DemographicsData.byCustomPolygon)
-router.get("/demographicsData/bygeoid/:geoId", DemographicsData.byGeoId)
-router.post("/demographicsData/radius", DemographicsData.byRadius)
-router.post("/demographicsData/drivetime", DemographicsData.byDriveTime)
-router.post(
-  "/demographicsData/geojson",
-  multer({
-    dest: "./tmp",
-    // filename(req, file, cb) {
-    //   cb(null, `${cuid()}-${file.filename}`)
-    // }
-  }).single("geojson"),
-  DemographicsData.byGeoJson
-)
 
 // Search particular regions data.................
 // router.get("/region/:id", region.get)
