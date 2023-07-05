@@ -28,7 +28,7 @@ module.exports = {
     try {
       const
         {
-          long, lat, radius // Note: radius input is in MILES
+          long, lat, radius, geographicLevel = "Blocks" // Note: radius input is in MILES
         } = req.query
 
       // validation start.........
@@ -54,7 +54,7 @@ module.exports = {
 
       const regionData = await Region.find(
         {
-          geographicLevel: "Blocks",
+          geographicLevel,
           centroid: {
             $nearSphere: {
               $geometry: { type: "Point", coordinates: [Number(long), Number(lat)] },
@@ -63,12 +63,17 @@ module.exports = {
           }
         },
       )
-        .select("-_id geoId name geographicLevel")
+        .select("-_id geoId name")
         // .populate({ path: "_census" })
         .lean()
         .exec()
 
-      return res.status(200).json({ error: false, blocks: regionData })
+      return res.status(200).json({
+        error: false,
+        geographicLevel,
+        count: regionData.length,
+        data: regionData
+      })
     } catch (err) {
       return res.status(500).json({ error: true, message: err.message })
     }
@@ -98,7 +103,7 @@ module.exports = {
   async driveTime(req, res) {
     try {
       const {
-        long, lat, minutes
+        long, lat, minutes, geographicLevel = "Blocks"
       } = req.query
 
       // validation start.........
@@ -124,19 +129,24 @@ module.exports = {
       }
       const { features } = await response.json()
       const driveTimeRes = await Region.find({
-        geographicLevel: "Blocks",
+        geographicLevel,
         centroid: {
           $geoWithin: {
             $geometry: features[0].geometry
           }
         }
       })
-        .select("-_id geoId name geographicLevel")
+        .select("-_id geoId name")
         // .populate({ path: "_census" })
         .lean()
         .exec()
 
-      return res.status(200).json({ error: false, blocks: driveTimeRes })
+      return res.status(200).json({
+        error: false,
+        geographicLevel,
+        count: driveTimeRes.length,
+        data: driveTimeRes
+      })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
@@ -164,29 +174,36 @@ module.exports = {
   async msa(req, res) {
     try {
       const { geoId } = req.params
+      const { geographicLevel = "Blocks" } = req.query
 
       const msa = await Region.findOne({
         geoId,
         geographicLevel: "MSA"
       })
+        .select("geometry")
         .lean()
         .exec()
       if (msa === null) return res.status(400).json({ error: true, message: `No such MSA with geo id ${geoId}` })
 
       const msaData = await Region.find({
-        geographicLevel: "Blocks",
+        geographicLevel,
         centroid: {
           $geoWithin: {
             $geometry: msa.geometry
           }
         }
       })
-        .select("-_id geoId name geographicLevel")
+        .select("-_id geoId name")
       // .populate({ path: "_census" })
         .lean()
         .exec()
 
-      return res.status(200).json({ error: false, blocks: msaData })
+      return res.status(200).json({
+        error: false,
+        geographicLevel,
+        count: msaData.length,
+        data: msaData
+      })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
@@ -214,6 +231,7 @@ module.exports = {
   async zipcode(req, res) {
     try {
       const { geoId } = req.params
+      const { geographicLevel = "Blocks" } = req.query
 
       const zipcode = await Region.findOne({
         geoId,
@@ -224,19 +242,24 @@ module.exports = {
       if (zipcode === null) return res.status(400).json({ error: true, message: `No such Zipcode with geo id ${geoId}` })
 
       const zipcodeData = await Region.find({
-        geographicLevel: "Blocks",
+        geographicLevel,
         centroid: {
           $geoWithin: {
             $geometry: zipcode.toObject().geometry
           }
         }
       })
-        .select("-_id geoId name geographicLevel")
+        .select("-_id geoId name")
       // .populate({ path: "_census" })
         .lean()
         .exec()
 
-      return res.status(200).json({ error: false, blocks: zipcodeData })
+      return res.status(200).json({
+        error: false,
+        geographicLevel,
+        count: zipcodeData.length,
+        data: zipcodeData
+      })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
