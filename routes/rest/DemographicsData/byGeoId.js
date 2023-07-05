@@ -40,7 +40,6 @@ module.exports = {
 
       const chosenAttributes = references.map(({ attribute }) => attribute) // .join("|")
 
-      console.log("chosenAttributes ==> ", chosenAttributes)
       if (chosenAttributes === null) return res.status(400).json({ error: true, message: "Please specify some valid census attributes!" })
 
       const censusData = await Census.findOne({
