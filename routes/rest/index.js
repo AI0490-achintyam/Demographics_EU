@@ -60,7 +60,7 @@ router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
 // router.get("/census/:geoid", census.get)
 
 // DemographicsData routes................
-router.use("/demographicsdata", DemographicsData)
+router.use("/demographicsData", DemographicsData)
 
 // Search list of  references.................
 router.get("/references/categories", references.categories)

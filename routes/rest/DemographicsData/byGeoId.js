@@ -33,22 +33,24 @@ module.exports = {
       let references = []
 
       if (Array.isArray(censusAttributes)) {
-        references = await Reference.find({ attribute: { $in: censusAttributes } }).lean().exec()
+        references = await Reference.findOne({ attribute: { $in: censusAttributes } }).lean().exec()
       } else if (typeof censusCategory === "string") {
         references = await Reference.find({ category: censusCategory }).lean().exec()
       }
 
       const chosenAttributes = references.map(({ attribute }) => attribute) // .join("|")
 
-      if (chosenAttributes.length === 0) return res.status(400).json({ error: true, message: "Please specify some valid census attributes!" })
+      console.log("chosenAttributes ==> ", chosenAttributes)
+      if (chosenAttributes === null) return res.status(400).json({ error: true, message: "Please specify some valid census attributes!" })
 
-      const censusData = await Census.find({
+      const censusData = await Census.findOne({
         geoId,
       })
         .select([
           "-_id",
           "geoId",
-          "censusBlocks",
+          "name",
+          // "censusBlocks",
           ...chosenAttributes.map((att) => `censusAttributes.${att}`)
         ])
         .lean()
