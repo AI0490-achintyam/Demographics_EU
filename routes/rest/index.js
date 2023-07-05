@@ -20,9 +20,6 @@ const DemographicsData = require("./DemographicsData")
 // const census = require("./census")
 const references = require("./references")
 
-// DemographicsData routes................
-router.use("/demographicsdata", DemographicsData)
-
 router.post("/signup", signup.post) // UNAUTHENTICATED
 router.post("/login", login.post) // UNAUTHENTICATED
 
@@ -61,6 +58,9 @@ router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
 
 // Search particular census data.................
 // router.get("/census/:geoid", census.get)
+
+// DemographicsData routes................
+router.use("/demographicsdata", DemographicsData)
 
 // Search list of  references.................
 router.get("/references/categories", references.categories)
