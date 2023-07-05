@@ -70,8 +70,27 @@ test.serial("GeoId.get: Verify response after entering blank array in censusAttr
   t.true(body.error)
 })
 
-test.skip("GeoId.get: Verify response after getting server error", async (t) => {
-  const stub = sinon.stub(GeoId, "findOne").throws(new Error("Server Error"))
+test.serial("GeoId.get: Verify response after getting null value", async (t) => {
+  const stub = sinon.stub(GeoId, "find").returns({
+    select: sinon.stub().returnsThis(),
+    lean: sinon.stub().returnsThis(),
+    exec: sinon.stub().resolves(null)
+  })
+  const { status, body } = await runRouteHandler(get, {
+    params: {
+      geoId: t.context.validGeoId,
+    },
+    body: {
+      censusCategory: "Race"
+    }
+  })
+  t.is(status, 400)
+  t.true(body.error)
+  stub.restore()
+})
+
+test.serial("GeoId.get: Verify response after getting server error", async (t) => {
+  const stub = sinon.stub(GeoId, "find").throws(new Error("Server Error"))
   const { status, body } = await runRouteHandler(get, {
     params: {
       geoId: t.context.validGeoId,
