@@ -40,7 +40,7 @@ module.exports = {
 
       const chosenAttributes = references.map(({ attribute }) => attribute) // .join("|")
 
-      if (chosenAttributes === null) return res.status(400).json({ error: true, message: "Please specify some valid census attributes!" })
+      if (chosenAttributes.length === 0) return res.status(400).json({ error: true, message: "Please specify some valid census attributes!" })
 
       const censusData = await Census.findOne({
         geoId,
