@@ -57,21 +57,26 @@ module.exports = {
         // eslint-disable-next-line no-restricted-globals
         isNaN(String(radius))
         || radius < 0
-        || radius > 50
+        // || radius > 50
         || radius === null
       ) {
-        return res.status(400).json({ error: true, message: "Field 'radius' is not valid range!!!" })
+        return res.status(400).json({ error: true, message: "Field 'radius' must be a positive integer!!!" })
       }
+
+      const isBig = radius > 50
 
       const { censusAttributes, censusCategory } = req.body
 
       if (censusAttributes === undefined && censusCategory === undefined) return res.status(400).json({ error: true, message: "At least one of censusAttributes or censusCategories must be specified!" })
 
       // validation end..........
+      const geographicLevel = isBig === true
+        ? { $in: ["Block Group"] }
+        : { $in: ["Blocks", "Block Group"] }
+
       const regionData = await Region.find(
         {
-          geographicLevel: { $in: ["Blocks", "Block Group"] },
-          // geographicLevel: { $in: ["Block Group"] },
+          geographicLevel,
           centroid: {
             $nearSphere: {
               $geometry: { type: "Point", coordinates: [Number(long), Number(lat)] },
@@ -80,7 +85,6 @@ module.exports = {
           }
         },
       )
-        // .limit(1000)
         .select("-_id geoId geographicLevel")
         // .populate({ path: "_census" })
         .lean()
@@ -96,21 +100,33 @@ module.exports = {
         references = await Reference.find({ category: censusCategory }).lean().exec()
       }
       const chosenAttributes = references.map(({ attribute }) => attribute) // .join("|")
-      if (chosenAttributes.length === 0) return res.status(400).json({ error: true, message: "Please sepecify some valid census attributes!" })
+      if (chosenAttributes.length === 0) return res.status(400).json({ error: true, message: "Please specify some valid census attributes!" })
 
       /* argument # 2 */
-      const blockGeoIds = regionData.filter((r) => r.geographicLevel === "Blocks").map(({ geoId }) => geoId) // .join("|")
-      if (blockGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
+      const blockGeoIds = isBig === true
+        ? []
+        : regionData.filter((r) => r.geographicLevel === "Blocks").map(({ geoId }) => geoId) // .join("|")
+      if (isBig !== true && blockGeoIds.length === 0) {
+        return res.status(200).json({ error: false, censusData: [] })
+      }
 
       /* argument # 1 */
 
       const cbgGeoIds = regionData.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
       if (cbgGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
 
-      const cbgDocuments = await Census.find({
-        geoId: { $in: cbgGeoIds },
-      })
-        .select([
+      const selectFields = isBig === true
+        ? [
+          "geoId",
+          "censusAttributes.B01003_E001",
+          "censusAttributes.B11001_E001",
+          "censusAttributes.B25001_E001",
+          "censusAttributes.B01003_M001",
+          "censusAttributes.B11001_M001",
+          "censusAttributes.B25001_M001",
+          ...chosenAttributes.map((att) => `censusAttributes.${att}`)
+        ]
+        : [
           "geoId",
           "censusBlocks",
           "censusAttributes.B01003_E001",
@@ -120,7 +136,11 @@ module.exports = {
           "censusAttributes.B11001_M001",
           "censusAttributes.B25001_M001",
           ...chosenAttributes.map((att) => `censusAttributes.${att}`)
-        ])
+        ]
+      const cbgDocuments = await Census.find({
+        geoId: { $in: cbgGeoIds },
+      })
+        .select(selectFields)
         .lean()
         .exec()
 
@@ -129,21 +149,25 @@ module.exports = {
 
       /* Write the arguments to temp files [TBD] */
       await fs.mkdir(`./tmp/${reqId}`, { recursive: true }) // first, create an unique tmp folder
-      await Promise.all([
-        fs.writeFile(`./tmp/${reqId}/cbgDocuments.json`, JSON.stringify(cbgDocuments)),
-        fs.writeFile(`./tmp/${reqId}/blockGeoids.txt`, blockGeoIds.join("|")),
-        fs.writeFile(`./tmp/${reqId}/attributes.txt`, chosenAttributes.join("|"))
-      ])
 
-      const { stdout } = await execa(
-        process.env.PYTHON_EXE_PATH,
-        [
-          process.env.CENSUS_AGGREGATOR_SCRIPT_PATH,
-          `./tmp/${reqId}/cbgDocuments.json`,
-          `./tmp/${reqId}/blockGeoids.txt`,
-          `./tmp/${reqId}/attributes.txt`
-        ]
-      )
+      const fileCreationPromises = [
+        fs.writeFile(`./tmp/${reqId}/cbgDocuments.json`, JSON.stringify(cbgDocuments)),
+        fs.writeFile(`./tmp/${reqId}/attributes.txt`, chosenAttributes.join("|"))
+      ]
+      if (isBig !== true) {
+        fileCreationPromises.push(
+          fs.writeFile(`./tmp/${reqId}/blockGeoids.txt`, blockGeoIds.join("|")),
+        )
+      }
+      await Promise.all(fileCreationPromises)
+
+      const scriptArgs = isBig === true
+        ? [process.env.CENSUS_AGGREGATOR_SCRIPT_PATH_BIGRADIUS]
+        : [process.env.CENSUS_AGGREGATOR_SCRIPT_PATH]
+      scriptArgs.push(`./tmp/${reqId}/cbgDocuments.json`)
+      if (isBig !== true) scriptArgs.push(`./tmp/${reqId}/blockGeoids.txt`)
+      scriptArgs.push(`./tmp/${reqId}/attributes.txt`)
+      const { stdout } = await execa(process.env.PYTHON_EXE_PATH, scriptArgs)
 
       const sanitizedOutput = stdout.replace(/NaN/g, "null") // remove NaN values (coming from Python?)
       return res.status(200).json({ error: false, censusData: JSON.parse(sanitizedOutput) })
