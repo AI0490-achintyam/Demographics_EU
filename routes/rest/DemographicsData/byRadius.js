@@ -63,7 +63,7 @@ module.exports = {
         return res.status(400).json({ error: true, message: "Field 'radius' must be a positive integer!!!" })
       }
 
-      const isBig = radius > 50
+      const isBig = radius > Number(process.env.CUTOFF_BIGRADIUS_MILES || 50)
 
       const { censusAttributes, censusCategory } = req.body
 
