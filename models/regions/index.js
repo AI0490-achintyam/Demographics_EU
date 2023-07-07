@@ -18,21 +18,27 @@ const RegionSchema = new mongoose.Schema({
   // },
   // new fields-------------
   state: {
-    type: String,
-    default: null
+    type: [String]
+
   },
   county: {
-    type: String,
-    default: null
+    type: [String]
+  },
+  stateName: {
+    type: [String]
+
+  },
+  countyName: {
+    type: [String]
+
   },
   tract: {
-    type: String,
-    default: null
+    type: [String]
   },
   blockGroup: {
-    type: String,
-    default: null
+    type: [String]
   }
+
 })
 
 RegionSchema.virtual("_census", {

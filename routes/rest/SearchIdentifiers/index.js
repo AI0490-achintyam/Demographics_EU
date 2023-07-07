@@ -14,6 +14,7 @@ module.exports = {
    * @apiQuery {Enum} [geographicalLevels] Enter one or multiple geographicalLevels
    * @apiQuery {Number}[page=1] Enter page number, default value is 1
    * @apiQuery {Number}[size=10] Enter size of data, default value is 10
+   * @apiQuery {String}[stateName] Enter size of data, default value is 10
    *
    * @apiSuccessExample {json} Success-Response:200
    *   {
@@ -26,13 +27,14 @@ module.exports = {
   async searchByName(req, res) {
     try {
       const {
-        geographicLevels, name, page = 1, size = 10
+        geographicLevels, stateName, name, page = 1, size = 10
       } = req.query
 
       if (typeof name !== "string" || name.trim() === "") {
         return res.status(400).json({ error: true, message: "Field 'name' not valid format!!!" })
       }
       const query = { $text: { $search: name } }
+      if (stateName !== undefined) query.stateName = stateName
 
       if (typeof geographicLevels === "string") {
         // convert geographicLevels into title case

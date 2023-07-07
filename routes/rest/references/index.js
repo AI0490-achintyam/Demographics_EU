@@ -1,4 +1,5 @@
 const Reference = require("../../../models/reference")
+const State = require("../../../models/state")
 
 module.exports = {
 
@@ -40,6 +41,14 @@ module.exports = {
         page: Number(page),
         size: Number(size)
       })
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message })
+    }
+  },
+  async states(req, res) {
+    try {
+      const states = await State.find({}).select("-_id").lean().exec()
+      return res.status(200).json({ error: false, states })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }

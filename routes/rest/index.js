@@ -65,6 +65,8 @@ router.use("/demographicsData", DemographicsData)
 // Search list of  references.................
 router.get("/references/categories", references.categories)
 router.get("/references/attributes", references.attributes)
+router.get("/references/states", references.states)
+
 // router.get("/references/msa", references.msa)
 // router.get("/references/forecastyears", references.forecastYears)
 
