@@ -22,7 +22,7 @@ module.exports = {
    *
    * @apiBody {Number} long Enter longitude of the given point
    * @apiBody {Number} lat Enter latitude of the given point
-   * @apiBody {Number} rad Enter scaler distance/radius in terms of meters
+   * @apiBody {Number} rad Enter scaler distance/radius in terms of miles
    *
    * @apiBody {String} [censusAttributes] Enter censusAttribute Either censusAttributes or censusCategory is mandatory
    * @apiBody {String} [censusCategory] Enter censusCategory Either censusAttributes or censusCategory is mandatory

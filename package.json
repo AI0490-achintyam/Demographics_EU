@@ -24,7 +24,7 @@
     "test:nocoverage": "ava",
     "test:withcoverage": "nyc ava",
     "test": "NODE_NO_WARNINGS=1 MONGOMS_VERSION=6.0.4 npm run test:withcoverage",
-    "gendoc": "apidoc -i routes/ -o public/docs"
+    "gendoc": "apidoc -i routes/ -o public/internaldocs"
   },
   "dependencies": {
     "bcrypt": "^5.0.0",

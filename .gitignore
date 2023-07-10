@@ -70,5 +70,8 @@ tempCodeRunnerFile.javascript
 public/docs/*
 !public/docs/.gitkeep
 
+public/internaldocs/*
+!public/internaldocs/.gitkeep
+
 tmp/*
 !tmp/.gitkeep
