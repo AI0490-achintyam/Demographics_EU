@@ -37,7 +37,6 @@ module.exports = {
       let jObj
       if (rdocs) {
         const fExt = rdocs.originalname?.split(".")?.pop()?.toLowerCase() // the extension of the uploaded file
-        console.log("fExt ==> ", fExt)
         if (!["json", "geojson"].includes(fExt)) {
           return res.status(400).json({ error: true, message: "Only files with .json or .geojson extensions are supported!" })
         }
