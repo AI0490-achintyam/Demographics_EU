@@ -31,21 +31,30 @@ module.exports = {
   async byGeoJson(req, res) {
     const reqId = cuid() // unique identifier for the endpoint call
     const rdocs = req.file // the uploaded file
-    try {
-      const fExt = rdocs.originalname?.split(".")?.pop()?.toLowerCase() // the extension of the uploaded file
-      if (!["json", "geojson"].includes(fExt)) {
-        return res.status(400).json({ error: true, message: "Only files with .json or .geojson extensions are supported!" })
-      }
+    const { geojson } = req.body
 
+    try {
       let jObj
-      try {
-        const jStr = await readFile(rdocs.path)
-        jObj = JSON.parse(jStr)
-      } catch (fileParseErr) {
-        req.logger.error(fileParseErr)
-        return res.status(400).json({ error: true, message: "Please make sure that you are uploading a valid json file!" })
+      if (rdocs) {
+        const fExt = rdocs.originalname?.split(".")?.pop()?.toLowerCase() // the extension of the uploaded file
+        console.log("fExt ==> ", fExt)
+        if (!["json", "geojson"].includes(fExt)) {
+          return res.status(400).json({ error: true, message: "Only files with .json or .geojson extensions are supported!" })
+        }
+
+        try {
+          const jStr = await readFile(rdocs.path)
+          jObj = JSON.parse(jStr)
+        } catch (fileParseErr) {
+          req.logger.error(fileParseErr)
+          return res.status(400).json({ error: true, message: "Please make sure that you are uploading a valid json file!" })
+        }
+        if (!jObj) return res.status(400).json({ error: true, message: "Unable to parse uploaded file!" })
+      } else if (geojson !== undefined) {
+        jObj = geojson
+      } else {
+        return res.status(400).json({ error: true, reason: "Either upload a geojson file or provide geojson object in req body" })
       }
-      if (!jObj) return res.status(400).json({ error: true, message: "Unable to parse uploaded file!" })
 
       // validate as geojson:
       const schema = Joi.object().keys({
@@ -116,10 +125,13 @@ module.exports = {
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message.slice(0, 1000) }) // error msg from python script failures may be extremely long, so slicing it
     } finally {
-      await Promise.all([
-        rimraf(rdocs.path), // delete the uploaded json file
+      const promises = [
         rimraf(`./tmp/${reqId}`) // delete the tmp folder
-      ])
+      ]
+      if (rdocs !== undefined) {
+        promises.push(rimraf(rdocs.path))
+      }
+      await Promise.all(promises)
     }
   }
 }
