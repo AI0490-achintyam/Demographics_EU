@@ -27,6 +27,7 @@
     "gendoc": "apidoc -i routes/ -o public/internaldocs"
   },
   "dependencies": {
+    "@mapbox/geojson-area": "^0.2.2",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "change-case": "^4.1.2",

@@ -1,9 +1,12 @@
 const execa = require("execa")
+const geojsonArea = require("@mapbox/geojson-area")
 const { rimraf } = require("rimraf")
 const fs = require("node:fs/promises")
 const cuid = require("cuid")
 const Joi = require("joi")
 const { readFile } = require("node:fs/promises")
+
+const { miles2meters } = require("../../../lib/radiusConvert")
 
 const Census = require("../../../models/census")
 const Region = require("../../../models/regions")
@@ -18,7 +21,8 @@ module.exports = {
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiBody {file} geojson Enter file of type geojson or json
+   * @apiBody {file} rdocs Either enter file of type geojson or json
+   * @apiBody {json} geojson Or Enter json object
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
@@ -31,7 +35,7 @@ module.exports = {
   async byGeoJson(req, res) {
     const reqId = cuid() // unique identifier for the endpoint call
     const rdocs = req.file // the uploaded file
-    const { geojson } = req.body
+    const geojson = req.body
 
     try {
       let jObj
@@ -82,11 +86,22 @@ module.exports = {
         return res.status(400).json({ error: true, message: "Please upload valid GeoJSON data with a single feature whose geometry type is a Polygon!" })
       }
 
+      const [{ geometry }] = jObj.features
+      const computedArea = geojsonArea.geometry(geometry) // in square meters
+      if (computedArea === 0) return res.status(400).json({ error: true, message: "Geojson polygon specified has zero area! Is it a closed polygon?" })
+      const cutOffArea = (miles2meters(process.env.CUTOFF_BIGRADIUS_MILES || 50) ** 2) * Math.PI // in square meters
+
+      const isBig = computedArea > cutOffArea
+
+      const geographicLevel = isBig === true
+        ? { $in: ["Block Group"] }
+        : { $in: ["Blocks", "Block Group"] }
+
       const regions = await Region.find({
-        geographicLevel: { $in: ["Blocks", "Block Group"] },
+        geographicLevel,
         centroid: {
           $geoWithin: {
-            $geometry: jObj.features[0].geometry
+            $geometry: geometry
           }
         }
       })
@@ -95,7 +110,9 @@ module.exports = {
         .exec()
 
       /* Compute arguments to be passed to Python script: */
-      const blockGeoIds = regions.filter((r) => r.geographicLevel === "Blocks").map(({ geoId }) => geoId).join("|")
+      const blockGeoIds = isBig === true
+        ? []
+        : regions.filter((r) => r.geographicLevel === "Blocks").map(({ geoId }) => geoId).join("|")
       if (blockGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
 
       const cbgGeoIds = regions.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
