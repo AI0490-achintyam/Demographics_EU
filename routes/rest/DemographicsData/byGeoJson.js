@@ -10,6 +10,7 @@ const { miles2meters } = require("../../../lib/radiusConvert")
 
 const Census = require("../../../models/census")
 const Region = require("../../../models/regions")
+const Reference = require("../../../models/reference")
 
 module.exports = {
   /**
@@ -93,6 +94,10 @@ module.exports = {
 
       const isBig = computedArea > cutOffArea
 
+      const { censusAttributes, censusCategory } = req.body
+
+      if (censusAttributes === undefined && censusCategory === undefined) return res.status(400).json({ error: true, message: "At least one of censusAttributes or censusCategories must be specified!" })
+
       const geographicLevel = isBig === true
         ? { $in: ["Block Group"] }
         : { $in: ["Blocks", "Block Group"] }
@@ -109,6 +114,16 @@ module.exports = {
         .lean()
         .exec()
 
+      let references = []
+
+      if (Array.isArray(censusAttributes)) {
+        references = await Reference.find({ attribute: { $in: censusAttributes } }).lean().exec()
+      } else if (typeof censusCategory === "string") {
+        references = await Reference.find({ category: censusCategory }).lean().exec()
+      }
+      const chosenAttributes = references.map(({ attribute }) => attribute) // .join("|")
+      if (chosenAttributes.length === 0) return res.status(400).json({ error: true, message: "Please specify some valid census attributes!" })
+
       /* Compute arguments to be passed to Python script: */
       const blockGeoIds = isBig === true
         ? []
@@ -117,25 +132,60 @@ module.exports = {
 
       const cbgGeoIds = regions.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
       if (cbgGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
+
+      const selectFields = isBig === true
+        ? [
+          "geoId",
+          "censusAttributes.B01003_E001",
+          "censusAttributes.B11001_E001",
+          "censusAttributes.B25001_E001",
+          "censusAttributes.B01003_M001",
+          "censusAttributes.B11001_M001",
+          "censusAttributes.B25001_M001",
+          ...chosenAttributes.map((att) => `censusAttributes.${att}`)
+        ]
+        : [
+          "geoId",
+          "censusBlocks",
+          "censusAttributes.B01003_E001",
+          "censusAttributes.B11001_E001",
+          "censusAttributes.B25001_E001",
+          "censusAttributes.B01003_M001",
+          "censusAttributes.B11001_M001",
+          "censusAttributes.B25001_M001",
+          ...chosenAttributes.map((att) => `censusAttributes.${att}`)
+        ]
+
       const cbgDocuments = await Census.find({
         geoId: { $in: cbgGeoIds }
       })
+        .select(selectFields)
         .lean()
         .exec()
-      await fs.mkdir(`./tmp/${reqId}`, { recursive: true }) // first, create an unique tmp folder
-      await Promise.all([
-        fs.writeFile(`./tmp/${reqId}/cbgDocuments.json`, JSON.stringify(cbgDocuments)),
-        fs.writeFile(`./tmp/${reqId}/blockGeoids.json`, blockGeoIds),
-      ])
 
-      const { stdout } = await execa(
-        process.env.PYTHON_EXE_PATH,
-        [
-          process.env.CENSUS_AGGREGATOR_SCRIPT_PATH,
-          `./tmp/${reqId}/cbgDocuments.json`,
-          `./tmp/${reqId}/blockGeoids.json`
-        ]
-      )
+      await fs.mkdir(`./tmp/${reqId}`, { recursive: true }) // first, create an unique tmp folder
+
+      const fileCreationPromises = [
+        fs.writeFile(`./tmp/${reqId}/cbgDocuments.json`, JSON.stringify(cbgDocuments)),
+        fs.writeFile(`./tmp/${reqId}/attributes.txt`, chosenAttributes.join("|"))
+      ]
+      if (isBig !== true) {
+        fileCreationPromises.push(
+          fs.writeFile(`./tmp/${reqId}/blockGeoids.txt`, blockGeoIds.join("|")),
+        )
+      }
+
+      await Promise.all(fileCreationPromises)
+
+      const scriptArgs = isBig === true
+        ? [process.env.CENSUS_AGGREGATOR_SCRIPT_PATH_BIGRADIUS]
+        : [process.env.CENSUS_AGGREGATOR_SCRIPT_PATH]
+      scriptArgs.push(`./tmp/${reqId}/cbgDocuments.json`)
+
+      if (isBig !== true) scriptArgs.push(`./tmp/${reqId}/blockGeoids.txt`)
+      scriptArgs.push(`./tmp/${reqId}/attributes.txt`)
+      const { stdout } = await execa(process.env.PYTHON_EXE_PATH, scriptArgs)
+
       const sanitizedOutput = stdout.replace(/NaN/g, "null") // remove NaN values (coming from Python?)
       return res.status(200).json({ error: false, censusData: JSON.parse(sanitizedOutput) })
     } catch (error) {
