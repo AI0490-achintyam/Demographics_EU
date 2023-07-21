@@ -1,38 +1,45 @@
-"""
-File: census_aggregator.py
-Date: 06-14-2023
-Version: v1.2.0
+# import sys
 
-Description:
-The 'aggregate_census_data' function aggregates census variables of given census block group data. It returns a dictionary of aggregated variables and their approximated Margin of errors.
+# def log_to_console(message):
+#     sys.stdout.write(message + '\n')
+#     sys.stdout.flush()
+'''
+Instructions:
+-------------
+To use this code, follow the steps below:
 
-Changes Made:
-- Updated the script to return a sorted output dictionary.
-- Modified the code to support returning output when called from the command-line interface.
-- Modified to accept only the selected census variables from the input data.
+1. Install the required dependencies:
+   - numpy: `pip install numpy`
+   - pandas: `pip install pandas`
+   - argparse: `pip install argparse`
 
-Dependencies:
-- sys
-- json
-- copy
-- functools
-- itertools
-- math.sqrt from the math module
-- numpy
+2. Ensure that you have the necessary input files:
+   - `file1.txt`: Path to the file containing CBG documents within the radius.
+   - `file2.txt` (optional): Path to an optional second file with user queried census variables.
 
-"""
+3. Run the code using the command-line interface.
+    Command Line Usage:
+    ------------------
+    1) If user queries for any selected census variables:
+       $ python CBG_census_aggregator.py file1.txt file2.txt
+  
+    2) If user requests for all census variables:
+       $ python CBG_census_aggregator.py file1.txt
+       python CBG_census_aggregator.py CBG_census_documents.txt
+
+'''
 
 import base64
 import sys
-import json
-import copy
-import functools
-import itertools
-from math import sqrt
-import numpy as np
 import argparse
 
-# from typing import List, Optional
+import json
+import copy
+import itertools
+
+from math import sqrt
+import pandas as pd
+import numpy as np
 
 
 # List of all census variables:
@@ -117,264 +124,247 @@ majoruniv_cols = population_univ_all + housing_unit_univ_all + household_univ
 monetary_moe_cols = [i.replace('_E', '_M') for i in monetary_variables]
 
 
-
-
 # The function to aggregate the census variables:
 
-# def aggregate_census_data(census_data_collection: List[str], selected_censusBlocks: List[str], user_input: Optional[List[str]] = None) -> None:
 def aggregate_census_data(census_data_collection, selected_censusBlocks, user_input=None):
-    
-    """
-    Aggregate census data based on the selected census blocks and user specified census variables.
+  # log_to_console ('entered python function')
+  actualUserRequest = copy.copy(user_input)
+  user_input = list(census_data_collection[0]['censusAttributes'].keys())
 
-    Args:
-        census_data_collection (pymongo.collection.Collection): The MongoDB collection containing census block group documents within the user-specified radius.
-        selected_censusBlocks (list): A list of census block geoids that fall within the user-specified radius.
-        user_input (list, optional): A list of census variables queried by the user to aggregate. Defaults to None.
+  # Step 1: Convert the bytes and string datatypes of Census blocks base variable data into desired datatypes:
+  for collection in census_data_collection:
+    block_data = collection['censusBlocks']
+    key = tuple(json.loads(list(block_data.keys())[0]))
+    value = np.frombuffer(base64.b64decode([i for i in block_data.values()][0])).reshape((-1, 3))
+    # value = np.frombuffer([i for i in block_data.values()][0]).reshape((-1, 3))
+    collection['censusBlocks'] = {key: value}
 
-    Returns:
-        dict: A dictionary containing the aggregated census data for the specified variables. If user_input is None, it contains all variables.
-
-    Raises:
-        ValueError: If the census variables are invalid or not found in the data collection.
-
-    Notes:
-    - This function aggregates census data based on the selected census blocks and the census variables provided by the user.
-    - The census data is aggregated based on the selected census blocks and the specified census variables.
-    - If user_input is None, the function aggregates all available census variables.
-    - If user_input is provided, the function aggregates only the specified census variables.
-    - The function returns a dictionary with the aggregated census variables and their MOEs (Margin of Errors).
-
-    Examples:
-    >>> aggregate_census_data(census_data_collection, selected_blocks, user_input=['B01003_E001', 'B02001_E002', 'B02001_E006'])
+  # List of Census Block Broups (CBG) GeoIDs within the specified radius:
+  selected_CBGs_ = set([i[:12] for i in selected_censusBlocks])
 
 
-    """
+  # function to get total population, housing units, households of selected section of CBGs:
+  def get_selectedBlocks_indexes_modified(censusBlock_dict_, CBG_id_func):
+    cbg_key_array = np.array(list(censusBlock_dict_.keys())[0])
+    values_ = list(censusBlock_dict_.values())[0]
 
-    actualUserRequest = copy.copy(user_input)
-    user_input = list(census_data_collection[0]['censusAttributes'].keys())
+    # getting base variables of blocks within the radius:
+    mask_ = np.isin(cbg_key_array, np.asarray(selected_censusBlocks_CBG_dict[CBG_id_func]))
+    values_ = values_[mask_]
 
-    # Step 1: Convert the bytes and string datatypes of Census blocks base variable data into desired datatypes:
+    CBG_totalBaseVar_values = np.sum(values_, axis=0)
+    return CBG_totalBaseVar_values
 
-    for collection in census_data_collection:
-        block_data = collection['censusBlocks']
-        key = json.loads(list(block_data.keys())[0])
-        key = tuple(tuple(sublist) for sublist in key)
-        value = np.frombuffer(base64.b64decode([i for i in block_data.values()][0])).reshape((-1, 4))
-        # value = np.frombuffer([i for i in block_data.values()][0]).reshape((-1, 4))
-        collection['censusBlocks'] = {key: value}
+  # In order to reduce the time taken for CBG data filtering, we need the below dictionary:
+  selected_censusBlocks_CBG_dict = {CBG: [] for CBG in selected_CBGs_}
 
-
-    # List of Census Block Broups (CBG) GeoIDs within the specified radius:
-    selected_CBGs_ = set([i[:12] for i in selected_censusBlocks])
-
-    # function to get total population, housing units, households of selected section of CBGs:
-    def get_selectedBlocks_indexes(censusBlock_dict_, CBG_id_func):
-
-        key_ = list(list(censusBlock_dict_.keys())[0])
-        values_ = list(censusBlock_dict_.values())[0]
-        
-        cbg_key_array = np.asarray(key_)
-
-        matching_indexes_ = np.where(np.isin(cbg_key_array[:,1], np.asarray(selected_censusBlocks_CBG_dict[CBG_id])))
-
-        base_census_value_arr_ = values_[matching_indexes_][:, 1:]
-
-        # the output will be in the format of:
-        #  ['B01003_E001', 'B11001_E001', 'B25001_E001'] that is  [totalPopulation, households, housingUnits] of the CBG
-        CBG_totalBaseVar_values = np.sum(base_census_value_arr_, axis=0)
-
-        return CBG_totalBaseVar_values
-
-    
-    # In order to reduce the time taken for CBG data filtering, we need the below dictionary:
-    selected_censusBlocks_CBG_dict = {CBG: [] for CBG in selected_CBGs_}
-
-    for censusBlock in selected_censusBlocks:
-        CBG = censusBlock[:12]
-        if CBG in selected_censusBlocks_CBG_dict:
-            selected_censusBlocks_CBG_dict[CBG].append(censusBlock)
+  for censusBlock in selected_censusBlocks:
+    CBG = censusBlock[:12]
+    if CBG in selected_censusBlocks_CBG_dict:
+      selected_censusBlocks_CBG_dict[CBG].append(censusBlock)
 
 
-    # Step 2: Filter the documents:
-    # filter only the CBG documents within user specified radius :
-    CBG_lookup_dict = {CBG_doc['geoId']: CBG_doc for CBG_doc in census_data_collection}
-    selected_CBG_collection_dict = {CBG_id:CBG_lookup_dict[CBG_id] for CBG_id in selected_CBGs_ if CBG_id in CBG_lookup_dict}
+  # Step 2: Filter the documents:
+  # filter only the CBG documents within user specified radius :
+  CBG_lookup_dict = {CBG_doc['geoId']: CBG_doc for CBG_doc in census_data_collection}
+  selected_CBG_collection_dict = {CBG_id:CBG_lookup_dict[CBG_id] for CBG_id in selected_CBGs_ if CBG_id in CBG_lookup_dict}
+  # print('len of selected_CBG_collection_dict:', len(selected_CBG_collection_dict))
 
 
-    error_moe = [-666666666, -999999999, -888888888, -222222222, -333333333, -555555555, '*', '**', '***', None]
+  error_moe = set([-666666666, -999999999, -888888888, -222222222, -333333333, -555555555, '*', '**', '***', None])
 
-    # Step 3: Calculate the total estimates and MOE of the selected Census blocks within each CBG:
-    #  and returning the values to selected_CBG_collection_dict's censusAttributes:
-    for CBG_id, CBG_doc in selected_CBG_collection_dict.items():
+  # Step 3: Calculate the total estimates and MOE of the selected Census blocks within each CBG:
+  #  and returning the values to selected_CBG_collection_dict's censusAttributes:
 
-        blocks_base_value_arr = get_selectedBlocks_indexes(CBG_doc['censusBlocks'], CBG_id)
-        CBG_totalvalues = np.asarray([CBG_doc['censusAttributes']['B01003_E001'],
-                                      CBG_doc['censusAttributes']['B11001_E001'],
-                                      CBG_doc['censusAttributes']['B25001_E001']])
-    
-        blocks_base_value_arr = blocks_base_value_arr / CBG_totalvalues
+  for CBG_id, CBG_doc in selected_CBG_collection_dict.items():
+    blocks_base_value_arr = get_selectedBlocks_indexes_modified(CBG_doc['censusBlocks'], CBG_id)
+    CBG_totalvalues = np.asarray([CBG_doc['censusAttributes']['B01003_E001'],
+                                  CBG_doc['censusAttributes']['B11001_E001'],
+                                  CBG_doc['censusAttributes']['B25001_E001']])
 
-        pop_proportion = blocks_base_value_arr[0]
-        hh_proportion = blocks_base_value_arr[1]
-        hu_proportion = blocks_base_value_arr[2]
+    blocks_base_value_arr = blocks_base_value_arr / CBG_totalvalues
 
-        pop_proportion_sqrt = sqrt(pop_proportion)
-        hh_proportion_sqrt = sqrt(hh_proportion)
-        hu_proportion_sqrt = sqrt(hu_proportion)
+    pop_proportion = blocks_base_value_arr[0]
+    hh_proportion = blocks_base_value_arr[1]
+    hu_proportion = blocks_base_value_arr[2]
 
-        # calculate the derived census variables using the above calculated proportion and base variables:
-        # Leave the monetary variables as it is, as they are median values:
-        if pop_proportion>0:
-            for pop_var in population_univ_all:
-                if pop_var in user_input:
-                    CBG_doc['censusAttributes'][pop_var] = int(CBG_doc['censusAttributes'][pop_var] * pop_proportion)
-                else:
-                    CBG_doc['censusAttributes'][pop_var] = np.nan
-                if pop_var.replace('_E', '_M') in user_input:
-                    cbg_moe = CBG_doc['censusAttributes'][pop_var.replace('_E', '_M')]
-                    CBG_doc['censusAttributes'][pop_var.replace('_E', '_M')] = cbg_moe if cbg_moe in error_moe else int(cbg_moe*pop_proportion_sqrt)
-                else:
-                    CBG_doc['censusAttributes'][pop_var.replace('_E', '_M')] = np.nan
-        else:
-            for pop_var in population_univ_all:
-                CBG_doc['censusAttributes'][pop_var] = np.nan
-                CBG_doc['censusAttributes'][pop_var.replace('_E', '_M')] = np.nan
+    pop_proportion_sqrt = sqrt(pop_proportion)
+    hh_proportion_sqrt = sqrt(hh_proportion)
+    hu_proportion_sqrt = sqrt(hu_proportion)
 
-        if hh_proportion>0:
-            for hh_var in household_univ:
-                if hh_var in user_input:
-                    CBG_doc['censusAttributes'][hh_var] = int(CBG_doc['censusAttributes'][hh_var] * hh_proportion)
-                else:
-                    CBG_doc['censusAttributes'][hh_var] = np.nan
-                
-                if hh_var.replace('_E', '_M') in user_input:
-                    cbg_moe = CBG_doc['censusAttributes'][hh_var.replace('_E', '_M')]
-                    CBG_doc['censusAttributes'][hh_var.replace('_E', '_M')] = cbg_moe if cbg_moe in error_moe else int(cbg_moe*hh_proportion_sqrt)
-                else:
-                    CBG_doc['censusAttributes'][hh_var.replace('_E', '_M')] = np.nan
-        else:
-            for hh_var in household_univ:
-                CBG_doc['censusAttributes'][hh_var] = np.nan
-                CBG_doc['censusAttributes'][hh_var.replace('_E', '_M')] = np.nan
+    # calculate the derived census variables using the above calculated proportion and base variables:
+    # Leave the monetary variables as it is, as they are median values:
+    # if pop_proportion!=0:
+    for pop_var in population_univ_all:
+      if pop_var in user_input:
+        cbg_est = CBG_doc['censusAttributes'][pop_var]
+        try:
+          CBG_doc['censusAttributes'][pop_var] = cbg_est if cbg_est in error_moe else int(cbg_est * pop_proportion)
+        except ValueError:
+          CBG_doc['censusAttributes'][pop_var] = np.nan
+      else:
+        CBG_doc['censusAttributes'][pop_var] = np.nan
 
-        if hu_proportion>0:
-            for hu_var in housing_unit_univ:
-                if hu_var in user_input:
-                    CBG_doc['censusAttributes'][hu_var] = int(CBG_doc['censusAttributes'][hu_var] * hu_proportion)
-                else:
-                    CBG_doc['censusAttributes'][hu_var] = np.nan
+      pop_moeVar = pop_var.replace('_E', '_M')
+      if pop_moeVar in user_input:
+        cbg_moe = CBG_doc['censusAttributes'][pop_moeVar]
+        try:
+          CBG_doc['censusAttributes'][pop_moeVar] = cbg_moe if cbg_moe in error_moe else int(cbg_moe*pop_proportion_sqrt)
+        except ValueError:
+          CBG_doc['censusAttributes'][pop_moeVar] = np.nan
+      else:
+        CBG_doc['censusAttributes'][pop_moeVar] = np.nan
 
-                if hu_var.replace('_E', '_M') in user_input:
-                    cbg_moe = CBG_doc['censusAttributes'][hu_var.replace('_E', '_M')]
-                    CBG_doc['censusAttributes'][hu_var.replace('_E', '_M')] = cbg_moe if cbg_moe in error_moe else int(cbg_moe*hu_proportion_sqrt)
-                else:
-                    CBG_doc['censusAttributes'][hu_var.replace('_E', '_M')] = np.nan
-        else:
-            for hu_var in housing_unit_univ:
-                CBG_doc['censusAttributes'][hu_var] = np.nan
-                CBG_doc['censusAttributes'][hu_var.replace('_E', '_M')] = np.nan
+      
+    # if hh_proportion!=0:
+    for hh_var in household_univ:
+      if hh_var in user_input:
+        cbg_est = CBG_doc['censusAttributes'][hh_var]
+        try:
+          CBG_doc['censusAttributes'][hh_var] = cbg_est if cbg_est in error_moe else int(cbg_est * hh_proportion)
+        except ValueError:
+          CBG_doc['censusAttributes'][hh_var] = np.nan
+      else:
+        CBG_doc['censusAttributes'][hh_var] = np.nan
 
-    inner_arrays = [np.array(list(val['censusAttributes'].values())) for val in selected_CBG_collection_dict.values()]
-    census_value_arr = np.array(inner_arrays)
+      hh_moeVar = hh_var.replace('_E', '_M')
+      if hh_moeVar in user_input:
+        cbg_moe = CBG_doc['censusAttributes'][hh_moeVar]
+        try:
+          CBG_doc['censusAttributes'][hh_moeVar] = cbg_moe if cbg_moe in error_moe else int(cbg_moe*hh_proportion_sqrt)
+        except ValueError:
+          CBG_doc['censusAttributes'][hh_moeVar] = np.nan
+      else:
+        CBG_doc['censusAttributes'][hh_moeVar] = np.nan
 
-    # Step 4: Calculate the Total estimates and MOE for the selected market:
-    # Find the position/index of user inputs (the list of census variables queried by user) from the allcolsLst
-    '''if user_input:
-        user_input.sort()
-        # get both Estimates and MOEs of user given census variables:
-        result_list = list(set([i.replace('_M','_E') for i in user_input]))
-        user_input = []
-        for item in result_list:
-            modified_item = item.replace('_E', '_M')
-            user_input.append(item)
-            user_input.append(modified_item)
-        indices = [allcolsLst.index(col) for col in user_input]
+
+    # if hu_proportion!=0:
+    for hu_var in housing_unit_univ:
+      if hu_var in user_input:
+        cbg_est = CBG_doc['censusAttributes'][hu_var]
+        try:
+          CBG_doc['censusAttributes'][hu_var] = cbg_est if cbg_est in error_moe else int(cbg_est * hu_proportion)
+        except ValueError:
+          CBG_doc['censusAttributes'][hu_var] = np.nan
+      else:
+        CBG_doc['censusAttributes'][hu_var] = np.nan
+
+      hu_moeVar = hu_var.replace('_E', '_M')
+      if hu_moeVar in user_input:
+        cbg_moe = CBG_doc['censusAttributes'][hu_moeVar]
+        try:
+          CBG_doc['censusAttributes'][hu_moeVar] = cbg_moe if cbg_moe in error_moe else int(cbg_moe*hu_proportion_sqrt)
+        except ValueError:
+          CBG_doc['censusAttributes'][hu_moeVar] = np.nan
+      else:
+        CBG_doc['censusAttributes'][hu_moeVar] = np.nan
+
+  inner_arrays = [np.array(list(val['censusAttributes'].values())) for val in selected_CBG_collection_dict.values()]
+  census_value_arr = np.array(inner_arrays)
+
+  # Step 4: Calculate the Total estimates and MOE for the selected market:
+
+  # Functions to aggregate/approximate the census variables:
+  def sum_column(col_indx):
+    resultsum = np.nansum(census_value_arr[:, col_indx], axis=0)
+    if pd.isna(resultsum):
+      return 0
+    return int(resultsum)
+
+  def approx_moe_column(col_indx):
+    Moe_col = census_value_arr[:, col_indx]
+    arr_float = np.array(Moe_col, dtype=float)
+    arr_float[arr_float == None] = np.nan
+    sum_of_squares = np.nansum(arr_float[arr_float >= 0] ** 2)
+    resultMoe = np.sqrt(sum_of_squares)
+    if pd.isna(resultMoe):
+      return 0
+    return int(resultMoe)
+
+  '''
+  def approx_income_moe_column(col_indx, weight_):
+    incMoe_col = census_value_arr[:, col_indx]
+    incMoe_col = incMoe_col.astype(float)
+    mask = (incMoe_col >= 0) & (~np.isnan(incMoe_col))
+
+    incMoe_filtered = incMoe_col[mask]
+    resultMoe = np.sqrt(np.sum(weight_ * (incMoe_filtered ** 2)))
+    if pd.isna(resultMoe):
+      return 0
+    return int(resultMoe)
+  '''
+  
+  
+  # Since the calculate of MOE for income columns is very high, we are working on an alternative solution to approximate the MOE:
+  # For now we provide the Highest MOE in the selected income column:
+  # 12-July-2023
+  def approx_income_moe_column(col_indx, weight_):
+    incMoe_col = census_value_arr[:, col_indx]
+    incMoe_col = incMoe_col.astype(float)
+    mask = (incMoe_col >= 0) & (~np.isnan(incMoe_col))
+    incMoe_filtered = incMoe_col[mask]
+    max_moe = np.max(incMoe_filtered)
+    if pd.isna(max_moe):
+      return 0
+    return int(max_moe)      
+      
+
+  def income_wgt_avg(col_indx):
+    income_column = census_value_arr[:, col_indx]
+    # to remove the uncomputed values
+    income_column_float = income_column.astype(float)
+    mask = (income_column_float >= 0) & (~np.isnan(income_column_float))
+    income_column_filtered = income_column_float[mask]
+
+    total_population_col_filtered = total_population_col[mask]
+    if np.any(total_population_col_filtered):
+      weighted_avg = np.average(income_column_filtered, weights=total_population_col_filtered)
     else:
-        user_input = copy.copy(allcolsLst)
-        indices = [i for i in range(len(allcolsLst))]'''
-
-    # Functions to aggregate/approximate the census variables:
-    def sum_column(col_indx):
-        resultsum = np.nansum(census_value_arr[:, col_indx], axis=0)
-        if pd.isna(resultsum):
-            return 0
-        return int(resultsum)
-
-    def approx_moe_column(col_indx):
-        Moe_col = census_value_arr[:, col_indx]
-        arr_float = np.array(Moe_col, dtype=float)
-        arr_float[arr_float == None] = np.nan
-        sum_of_squares = np.nansum(arr_float[arr_float >= 0] ** 2)
-        resultMoe = np.sqrt(sum_of_squares)
-        if pd.isna(resultMoe):
-            return 0
-        return int(resultMoe)
-
-    def approx_income_moe_column(col_indx, weight_):
-        incMoe_col = census_value_arr[:, col_indx]
-        incMoe_col = incMoe_col.astype(float)
-        mask = (incMoe_col >= 0) & (~np.isnan(incMoe_col))
-
-        incMoe_filtered = incMoe_col[mask]
-        resultMoe = np.sqrt(np.sum(weight_ * (incMoe_filtered ** 2)))
-        if pd.isna(resultMoe):
-            return 0
-        return int(resultMoe)
-
-    def income_wgt_avg(col_indx):
-        income_column = census_value_arr[:, col_indx]
-
-        # to remove the uncomputed values
-        income_column_float = income_column.astype(float)
-        mask = (income_column_float >= 0) & (~np.isnan(income_column_float))
-        income_column_filtered = income_column_float[mask]
-
-        total_population_col_filtered = total_population_col[mask]
-        weighted_avg = np.average(income_column_filtered, weights=total_population_col_filtered)
-
-        if pd.isna(weighted_avg):
-            return 0
-        return int(weighted_avg)
-
-
-    # Get the final output in form of dictionary:
-    output_dict = dict()
-    totalPop_idx = user_input.index('B01003_E001')
-    total_population_col = census_value_arr[:, totalPop_idx]
-
-    for i in range(len(user_input)):
-        col = user_input[i]
-        # Estimates:
-        if col in majoruniv_cols:
-            value = int(sum_column(i))
-
-        elif col in monetary_variables:
-            value = int(income_wgt_avg(i))
-
-        elif col in majorMOE_cols:
-            value = int(approx_moe_column(i))
-
-        elif col in monetary_moe_cols:
-            weight = output_dict[col.replace('_M', '_E')]
-            value = approx_income_moe_column(i, weight)
-
-        # insert the variable and its value to result dictionary:
-        output_dict[col] = value
-
-
-    if actualUserRequest:
-        final_output = dict()
-        for key in actualUserRequest:
-            final_output[key] = output_dict[key]
-    else:
-        final_output = output_dict
-
-    final_output = dict(sorted(final_output.items()))
+      return 0
+    if pd.isna(weighted_avg):
+      return 0
+    return int(weighted_avg)
     
-    return final_output
+    
 
-## This code will enable the python function to read data from text files when passed as argument.
+
+  # Get the final output in form of dictionary:
+  output_dict = dict()
+  totalPop_idx = user_input.index('B01003_E001')
+  total_population_col = census_value_arr[:, totalPop_idx]
+  # print('total_population_col: ', total_population_col)
+
+  for i in range(len(user_input)):
+    col = user_input[i]
+
+    if col in majoruniv_cols:
+      value = sum_column(i)
+
+    elif col in monetary_variables:
+      value = income_wgt_avg(i)
+
+    elif col in majorMOE_cols:
+      value = approx_moe_column(i)
+
+    elif col in monetary_moe_cols:
+      weight = output_dict[col.replace('_M', '_E')]
+      value = approx_income_moe_column(i, weight)
+
+    output_dict[col] = value
+
+
+  if actualUserRequest:
+    final_output = dict()
+    for key in actualUserRequest:
+      final_output[key] = output_dict[key]
+  else:
+    final_output = output_dict
+
+  final_output = dict(sorted(final_output.items()))
+  # log_to_console(f'the output type: {type(final_output)};  \n\n {final_output}') 
+  # log_to_console('type', final_output)
+  return final_output
+
 
 
 ## For Direct Execution as a script:
@@ -414,3 +404,5 @@ if __name__ == "__main__":
     
     # sys.stdout.write(json.dumps(output))
     print(json.dumps(output))
+
+
