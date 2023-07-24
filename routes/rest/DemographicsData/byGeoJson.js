@@ -15,7 +15,7 @@ const Reference = require("../../../models/reference")
 module.exports = {
   /**
    *
-   * @api {get} /demographicsData/geojson GeoJson
+   * @api {post} /demographicsData/geojson GeoJson
    * @apiName GeoJSONSearch
    * @apiGroup Demographics Data
    * @apiVersion  1.0.0
