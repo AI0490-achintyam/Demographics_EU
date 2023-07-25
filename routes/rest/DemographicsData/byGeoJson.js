@@ -36,7 +36,7 @@ module.exports = {
   async byGeoJson(req, res) {
     const reqId = cuid() // unique identifier for the endpoint call
     const rdocs = req.file // the uploaded file
-    const geojson = req.body
+    const { geojson } = req.body
 
     try {
       let jObj
@@ -127,7 +127,7 @@ module.exports = {
       /* Compute arguments to be passed to Python script: */
       const blockGeoIds = isBig === true
         ? []
-        : regions.filter((r) => r.geographicLevel === "Blocks").map(({ geoId }) => geoId).join("|")
+        : regions.filter((r) => r.geographicLevel === "Blocks").map(({ geoId }) => geoId) // .join("|")
       if (blockGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
 
       const cbgGeoIds = regions.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
