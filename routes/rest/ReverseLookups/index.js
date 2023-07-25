@@ -17,7 +17,7 @@ module.exports = {
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
-        "region": [
+        "regions": [
           {}
         ]
    *  }
@@ -76,7 +76,7 @@ module.exports = {
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
-        "region": [
+        "regions": [
           {}
         ]
    *  }
@@ -124,7 +124,7 @@ module.exports = {
         .exec()
       // .populate({ path: "_census" }).exec()
 
-      return res.status(200).json({ error: false, region: searchByGeoId })
+      return res.status(200).json({ error: false, regions: searchByGeoId })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
