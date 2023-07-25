@@ -28,7 +28,7 @@ module.exports = {
       const { geoId } = req.params
       const { censusAttributes, censusCategory } = req.body
 
-      if (censusAttributes === undefined && censusCategory === undefined) return res.status(400).json({ error: true, message: "At least one of censusAttributes or censusCategories must be specified!" })
+      if (censusAttributes === undefined && censusCategory === undefined) return res.status(400).json({ error: true, message: "At least one of censusAttributes or censusCategory must be specified!" })
 
       let references = []
 
