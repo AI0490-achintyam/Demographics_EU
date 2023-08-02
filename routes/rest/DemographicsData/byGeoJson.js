@@ -98,12 +98,12 @@ module.exports = {
 
       if (censusAttributes === undefined && censusCategory === undefined) return res.status(400).json({ error: true, message: "At least one of censusAttributes or censusCategory must be specified!" })
 
-      const geographicLevel = isBig === true
-        ? { $in: ["Block Group"] }
-        : { $in: ["Blocks", "Block Group"] }
+      // const geographicLevel = isBig === true
+      //   ? { $in: ["Block Group"] }
+      //   : { $in: ["Blocks", "Block Group"] }
 
-      const regions = await Region.find({
-        geographicLevel,
+      const blocks = await Region.find({
+        geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
             $geometry: geometry
@@ -127,10 +127,11 @@ module.exports = {
       /* Compute arguments to be passed to Python script: */
       const blockGeoIds = isBig === true
         ? []
-        : regions.filter((r) => r.geographicLevel === "Blocks").map(({ geoId }) => geoId) // .join("|")
+        : blocks.map(({ geoId }) => geoId) // .join("|")
       if (blockGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
 
-      const cbgGeoIds = regions.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
+      // const cbgGeoIds = blocks.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
+      const cbgGeoIds = [...new Set(blocks.map(({ geoId }) => geoId.substring(0, 12)))]
       if (cbgGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
 
       const selectFields = isBig === true

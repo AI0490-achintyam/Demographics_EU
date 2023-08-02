@@ -67,8 +67,8 @@ module.exports = {
       }
       const { features } = await response.json()
 
-      const driveTimeRes = await Region.find({
-        geographicLevel: { $in: ["Blocks", "Block Group"] },
+      const blocks = await Region.find({
+        geographicLevel: "Blocks",
         centroid: {
           $geoWithin: {
             $geometry: features[0].geometry
@@ -92,10 +92,11 @@ module.exports = {
       if (chosenAttributes.length === 0) return res.status(400).json({ error: true, message: "Please sepecify some valid census attributes!" })
 
       /* Compute arguments to be passed to Python script: */
-      const blockGeoIds = driveTimeRes.filter((r) => r.geographicLevel === "Blocks").map(({ geoId }) => geoId).join("|")
+      const blockGeoIds = blocks.map(({ geoId }) => geoId).join("|")
       if (blockGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
 
-      const cbgGeoIds = driveTimeRes.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
+      // const cbgGeoIds = blocks.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
+      const cbgGeoIds = [...new Set(blocks.map(({ geoId }) => geoId.substring(0, 12)))]
       if (cbgGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
       const cbgDocuments = await Census.find({
         geoId: { $in: cbgGeoIds },

@@ -70,13 +70,13 @@ module.exports = {
       if (censusAttributes === undefined && censusCategory === undefined) return res.status(400).json({ error: true, message: "At least one of censusAttributes or censusCategory must be specified!" })
 
       // validation end..........
-      const geographicLevel = isBig === true
-        ? { $in: ["Block Group"] }
-        : { $in: ["Blocks", "Block Group"] }
+      // const geographicLevel = isBig === true
+      //   ? { $in: ["Block Group"] }
+      //   : { $in: ["Blocks", "Block Group"] }
 
-      const regionData = await Region.find(
+      const blocks = await Region.find(
         {
-          geographicLevel,
+          geographicLevel: "Blocks",
           centroid: {
             $nearSphere: {
               $geometry: { type: "Point", coordinates: [Number(long), Number(lat)] },
@@ -105,14 +105,15 @@ module.exports = {
       /* argument # 2 */
       const blockGeoIds = isBig === true
         ? []
-        : regionData.filter((r) => r.geographicLevel === "Blocks").map(({ geoId }) => geoId) // .join("|")
+        : blocks.map(({ geoId }) => geoId) // .join("|")
       if (isBig !== true && blockGeoIds.length === 0) {
         return res.status(200).json({ error: false, censusData: [] })
       }
 
       /* argument # 1 */
 
-      const cbgGeoIds = regionData.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
+      // const cbgGeoIds = blocks.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
+      const cbgGeoIds = [...new Set(blocks.map(({ geoId }) => geoId.substring(0, 12)))]
       if (cbgGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
 
       const selectFields = isBig === true
