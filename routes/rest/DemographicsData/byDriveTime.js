@@ -130,7 +130,31 @@ module.exports = {
         ]
       )
       const sanitizedOutput = stdout.replace(/NaN/g, "null") // remove NaN values (coming from Python?)
-      return res.status(200).json({ error: false, censusData: JSON.parse(sanitizedOutput) })
+
+      let censusData = JSON.parse(sanitizedOutput)
+      if (censusCategory !== undefined) {
+        censusData = Object.keys(censusData).reduce((acc, cur) => {
+          const foundRef = references.find((r) => r.attribute === cur)
+          if (foundRef === undefined) return acc // filter unneccessery record
+
+          const keySplit = cur.split("_")
+          if (keySplit[1].startsWith("E")) {
+            const moeKey = `${keySplit[0]}_${keySplit[1].replace(/^E/, "M")}`
+            const record = {
+              name: foundRef?.name,
+              universe: foundRef?.universe,
+              censusCategory: foundRef?.category,
+              attribute: cur,
+              value: censusData[cur],
+            }
+            if (censusData[moeKey] !== undefined) record.moE = censusData[moeKey]
+            acc.push(record)
+          }
+          return acc
+        }, [])
+      }
+      return res.status(200).json({ error: false, censusData })
+      // return res.status(200).json({ error: false, censusData: JSON.parse(sanitizedOutput) })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message.slice(0, 1000) }) // error msg from python script failures may be extremely long, so slicing it
     } finally {
