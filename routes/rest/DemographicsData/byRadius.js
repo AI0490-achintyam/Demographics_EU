@@ -173,27 +173,27 @@ module.exports = {
       const sanitizedOutput = stdout.replace(/NaN/g, "null") // remove NaN values (coming from Python?)
 
       let censusData = JSON.parse(sanitizedOutput)
-      if (censusCategory !== undefined) {
-        censusData = Object.keys(censusData).reduce((acc, cur) => {
-          const foundRef = references.find((r) => r.attribute === cur)
-          if (foundRef === undefined) return acc // filter unneccessery record
 
-          const keySplit = cur.split("_")
-          if (keySplit[1].startsWith("E")) {
-            const moeKey = `${keySplit[0]}_${keySplit[1].replace(/^E/, "M")}`
-            const record = {
-              name: foundRef?.name,
-              universe: foundRef?.universe,
-              censusCategory: foundRef?.category,
-              attribute: cur,
-              value: censusData[cur],
-            }
-            if (censusData[moeKey] !== undefined) record.moE = censusData[moeKey]
-            acc.push(record)
+      censusData = Object.keys(censusData).reduce((acc, cur) => {
+        const foundRef = references.find((r) => r.attribute === cur)
+        if (foundRef === undefined) return acc // filter unneccessery record
+
+        const keySplit = cur.split("_")
+        if (keySplit[1].startsWith("E")) {
+          const moeKey = `${keySplit[0]}_${keySplit[1].replace(/^E/, "M")}`
+          const record = {
+            name: foundRef?.name,
+            universe: foundRef?.universe,
+            censusCategory: foundRef?.category,
+            attribute: cur,
+            value: censusData[cur],
           }
-          return acc
-        }, [])
-      }
+          if (censusData[moeKey] !== undefined) record.moE = censusData[moeKey]
+          acc.push(record)
+        }
+        return acc
+      }, [])
+
       return res.status(200).json({ error: false, censusData })
     } catch (err) {
       req.logger.error(err)
