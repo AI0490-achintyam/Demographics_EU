@@ -42,7 +42,7 @@ module.exports = {
 
       if (chosenAttributes.length === 0) return res.status(400).json({ error: true, message: "Please specify some valid census attributes!" })
 
-      const censusData = await Census.findOne({
+      const census = await Census.findOne({
         geoId,
       })
         .select([
@@ -55,9 +55,36 @@ module.exports = {
         .lean()
         .exec()
 
-      if (censusData === null) return res.status(400).json({ error: true, message: `No such geo id ${geoId}` })
+      if (census === null) return res.status(400).json({ error: true, message: `No such geo id ${geoId}` })
 
-      return res.status(200).json({ error: false, censusData })
+      let censusData = census.censusAttributes
+      // console.log("censusGeodata ==> ", censusGeodata)
+      if (censusData !== null) {
+        censusData = Object.keys(censusData).reduce((acc, cur) => {
+          const foundRef = references.find((r) => r.attribute === cur)
+          if (foundRef === undefined) return acc // filter unneccessery record
+
+          const keySplit = cur.split("_")
+          if (keySplit[1].startsWith("E")) {
+            const moeKey = `${keySplit[0]}_${keySplit[1].replace(/^E/, "M")}`
+            const record = {
+              name: foundRef?.name,
+              universe: foundRef?.universe,
+              censusCategory: foundRef?.category,
+              attribute: cur,
+              value: censusData[cur],
+            }
+            if (censusData[moeKey] !== undefined) record.moE = censusData[moeKey]
+            acc.push(record)
+          }
+          return acc
+        }, [])
+      }
+
+      delete census.censusAttributes
+      return res.status(200).json(
+        { error: false, ...census, censusData }
+      )
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message })
     }
