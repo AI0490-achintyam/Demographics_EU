@@ -58,7 +58,7 @@ module.exports = {
       if (census === null) return res.status(400).json({ error: true, message: `No such geo id ${geoId}` })
 
       let censusData = census.censusAttributes
-      // console.log("censusGeodata ==> ", censusGeodata)
+
       if (censusData !== null) {
         censusData = Object.keys(censusData).reduce((acc, cur) => {
           const foundRef = references.find((r) => r.attribute === cur)
