@@ -30,7 +30,7 @@ module.exports = {
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
-        "region": [
+        "censusData": [
           {}
         ]
    *  }

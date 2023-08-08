@@ -15,11 +15,17 @@ module.exports = {
    * @apiQuery {Number} long Enter longitude of the given point
    * @apiQuery {Number} lat Enter latitude of the given point
    * @apiQuery {Number} radius Enter scaler distance/radius in terms of miles
+   * @apiQuery {String} [geographicLevel] Enter geographicLevel for filter (default= Blocks)
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
-        "region": [
-          {}
+        "geographicLevel": "Zipcode",
+        "count": 1,
+        "data": [
+            {
+                "geoId": "ZCTA5 32601",
+                "name": "32601"
+            }
         ]
    *  }
   */
@@ -91,12 +97,18 @@ module.exports = {
    * @apiQuery {Number} lat Enter latitude of the given point
    * @apiQuery {String} profile Enter profile for example:cycling, walking, driving
    * @apiQuery {Number} mintutes Enter time in terms of minutes
+   * @apiQuery {String} [geographicLevel] Enter geographicLevel for filter (default= Blocks)
+   *
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
-        "regions": [
-          {}
-        ]
+         "geographicLevel": "Blocks",
+        "count": 1,
+        "data": [
+          {
+            "geoId": "120599602012023",
+            "name": "Block 2023, Block Group 2, Census Tract 9602.01, Holmes County, Florida, USA"
+        }]
    *  }
   */
 
@@ -161,13 +173,18 @@ module.exports = {
    * @apiPermission User
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
-   * @apiQuery {Number} geoId Enter geoId of the given point
-   *
+   * @apiParams {Number} geoId Enter geoId of the given point
+   * @apiQuery {String} [geographicLevel] Enter geographicLevel for filter (default= Blocks)
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
-        "regions": [
-          {}
+        "geographicLevel": "Blocks",
+        "count": 1,
+        "data": [
+            {
+            "geoId": "120270101021002",
+            "name": "Block 1002, Block Group 1, Census Tract 101.02, DeSoto County, Florida, USA"
+        }
         ]
    *  }
   */
@@ -219,13 +236,18 @@ module.exports = {
    * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.  yyyy.zzzz"
    *
    * @apiParam {Number} geoId Enter geoId of the given point
-   *
+   * @apiQuery {String} [geographicLevel] Enter geographicLevel for filter (default= Blocks)
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
-        "regions": [
-          {}
-        ]
+        "geographicLevel": "Blocks",
+        "count": 1,
+        "data": [
+            {
+            "geoId": "120270101021002",
+            "name": "Block 1002, Block Group 1, Census Tract 101.02, DeSoto County, Florida, USA"
+        }
+      ]
    *  }
   */
   async zipcode(req, res) {

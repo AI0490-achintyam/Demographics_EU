@@ -19,7 +19,7 @@ module.exports = {
    *
    * @apiBody {Number} long Enter longitude of the given point
    * @apiBody {Number} lat Enter latitude of the given point
-   * @apiBody {Number} range Enter range in terms of meters
+   * @apiBody {Number} range Enter range in terms of miles
    *
    * @apiBody {String} [censusAttributes] Enter censusAttribute Either censusAttributes or censusCategory is mandatory
    * @apiBody {String} [censusCategory] Enter censusCategory Either censusAttributes or censusCategory is mandatory
@@ -27,7 +27,7 @@ module.exports = {
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
-        "regions": [
+        "censusData": [
           {}
         ]
    *  }

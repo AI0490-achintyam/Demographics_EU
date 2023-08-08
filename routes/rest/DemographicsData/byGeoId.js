@@ -18,7 +18,9 @@ module.exports = {
    * @apiSuccessExample {json} Success-Response:200
    * {
         "error": false,
-        "region": [
+        "geoId":"ZCTA5 32003",
+        "name": "32003",
+        "censusData": [
           {}
         ]
    *  }
