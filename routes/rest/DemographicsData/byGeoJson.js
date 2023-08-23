@@ -99,7 +99,7 @@ module.exports = {
 
       if (censusAttributes === undefined && censusCategory === undefined) return res.status(400).json({ error: true, message: "At least one of censusAttributes or censusCategory must be specified!" })
 
-      if (rdocs) censusAttributes = censusAttributes?.split(",") // while uploading file, we cannot pass array, but a comma separated list of strings as secondary parameters
+      if (rdocs && typeof censusAttributes === "string") censusAttributes = censusAttributes?.split(",") // while uploading file, we cannot pass array, but a comma separated list of strings as secondary parameters
 
       // const geographicLevel = isBig === true
       //   ? { $in: ["Block Group"] }
