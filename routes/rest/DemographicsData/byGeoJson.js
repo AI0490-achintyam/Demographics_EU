@@ -131,10 +131,14 @@ module.exports = {
       const blockGeoIds = isBig === true
         ? []
         : blocks.map(({ geoId }) => geoId) // .join("|")
-      if (blockGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
+
+      if (isBig !== true && blockGeoIds.length === 0) {
+        return res.status(200).json({ error: false, censusData: [] })
+      }
 
       // const cbgGeoIds = blocks.filter((r) => r.geographicLevel === "Block Group").map(({ geoId }) => geoId)
       const cbgGeoIds = [...new Set(blocks.map(({ geoId }) => geoId.substring(0, 12)))]
+
       if (cbgGeoIds.length === 0) return res.status(200).json({ error: false, censusData: [] })
 
       const selectFields = isBig === true
