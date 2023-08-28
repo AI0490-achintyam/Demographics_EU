@@ -203,8 +203,10 @@ module.exports = {
         if (foundRef === undefined) return acc // filter unneccessery record
 
         const keySplit = cur.split("_")
-        if (keySplit[1].startsWith("E")) {
-          const moeKey = `${keySplit[0]}_${keySplit[1].replace(/^E/, "M")}`
+        const suffix = keySplit.pop()
+        const prefixes = keySplit.join("_") // may contain multiple _ within it
+        if (suffix.startsWith("E")) {
+          const moeKey = `${prefixes}_${suffix.replace(/^E/, "M")}`
           const record = {
             name: foundRef?.name,
             universe: foundRef?.universe,
