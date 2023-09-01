@@ -5,6 +5,8 @@ This code handles the challenges of aggregating census data for larger radii by 
 It takes in a collection of CBG documents and performs various calculations to derive aggregated census data.
 The code can be used as a Python function or executed as a script.
 
+last updated on: 01-sep-2023
+
 
 Instructions:
 -------------
@@ -13,20 +15,21 @@ To use this code, follow the steps below:
 1. Install the required dependencies:
    - numpy: `pip install numpy`
    - argparse: `pip install argparse`
+   - pandas: `pip install pandas`
 
 2. Ensure that you have the necessary input files:
-   - `file1.txt`: Path to the file containing CBG documents within the radius.
-   - `file2.txt` (optional): Path to an optional second file with user queried census variables.
+   - 'file1.txt': Path to the file containing CBG documents within the radius.
+   - 'file2.txt' (optional): Path to an optional second file with user queried census variables.
 
 3. Run the code using the command-line interface.
+
     Command Line Usage:
     ------------------
-    1) If user queries for any selected census variables:
-       $ python CBG_census_aggregator.py file1.txt file2.txt
+    1) If a user queries for specific census variables, input both CBG documents and the requested variables file.
+       $ python CBG_census_aggregator.py <file1.txt> <file2.txt>
     
-    2) If user requests for all census variables:
-       $ python CBG_census_aggregator.py file1.txt
-       python CBG_census_aggregator.py CBG_census_documents.txt
+    2) If user requests for all census variables, input only the CBG documents file:
+       $ python CBG_census_aggregator.py <file1.txt>
 """
 
 import sys
@@ -36,6 +39,7 @@ import json
 import itertools
 
 from math import sqrt
+import pandas as pd
 import numpy as np
 
 
@@ -121,6 +125,8 @@ majorMOE_cols = populationMOE_univ_all + housing_unitMOE_univ_all + householdMOE
 majoruniv_cols = population_univ_all + housing_unit_univ_all + household_univ
 monetary_moe_cols = [i.replace('_E', '_M') for i in monetary_variables]
 
+avgVariables = ['B25010_E001', 'B25010_E002', 'B25010_E003']
+avg_MOEVariables = ['B25010_M001', 'B25010_M002', 'B25010_M003']
 
 
 def aggregate_CBG_census_data(census_data_collection, user_input=None):
@@ -133,6 +139,8 @@ def aggregate_CBG_census_data(census_data_collection, user_input=None):
 
 
   # Functions to aggregate/approximate the census variables:
+  
+  # To find sum of all estimates:
   def sum_column(col_indx):
     column_value = census_value_arr[:, col_indx] # The column
     column_value = column_value[~np.isin(column_value, uncomputed_values)] # Remove values present in the uncomputed_values list
@@ -140,6 +148,25 @@ def aggregate_CBG_census_data(census_data_collection, user_input=None):
     if np.isnan(resultsum):
       return 0
     return int(resultsum)
+    
+  # To find average of all values:
+  def avgMean_column(col_indx):
+    column_value = census_value_arr[:, col_indx] # The column value
+    column_value = column_value[~np.isin(column_value, uncomputed_values)] # Remove values present in the uncomputed_values list
+    resultavg = np.nanmean(column_value, axis=0) # Average of the column
+    if np.isnan(resultavg):
+      return 0
+    return round(resultavg, 3)
+    
+  # To find average MOE of all values:
+  def approx_avgCol_moe(col_indx):
+    Moe_col = census_value_arr[:, col_indx]
+    Moe_col = Moe_col[~np.isin(Moe_col, uncomputed_values)] # Remove values present in the uncomputed_values list
+    Moe_col = Moe_col[Moe_col >= 0]
+    resultAvgMOE = np.max(Moe_col)
+    if np.isnan(resultAvgMOE):
+      return 0
+    return round(resultAvgMOE, 3)
 
   def approx_moe_column(col_indx):
     Moe_col = census_value_arr[:, col_indx]
@@ -150,7 +177,8 @@ def aggregate_CBG_census_data(census_data_collection, user_input=None):
         return 0
     return int(resultMoe)
 
-  def approx_income_moe_column(col_indx, weight_):
+
+  '''def approx_income_moe_column(col_indx, weight_):
     incMoe_col = census_value_arr[:, col_indx]
     incMoe_col = incMoe_col.astype(float)
     incMoe_col[incMoe_col == None] = np.nan
@@ -160,8 +188,23 @@ def aggregate_CBG_census_data(census_data_collection, user_input=None):
     resultMoe = np.sqrt(np.sum(weight_ * (incMoe_filtered ** 2)))
     if np.isnan(resultMoe):
         return 0
-    return int(resultMoe)
-
+    return int(resultMoe)'''
+    
+  # 12-July-2023: Since the calculation of MOE for income columns is very high,
+  # we are working on an alternative solution to approximate the MOE:
+  # For now we provide the Highest MOE in the selected income column:
+  
+  def approx_income_moe_column(col_indx, weight_):
+    incMoe_col = census_value_arr[:, col_indx]
+    incMoe_col = incMoe_col.astype(float)
+    mask = (incMoe_col >= 0) & (~np.isnan(incMoe_col))
+    incMoe_filtered = incMoe_col[mask]
+    max_moe = np.max(incMoe_filtered)
+    if pd.isna(max_moe):
+      return 0
+    return int(max_moe)
+    
+    
   def income_wgt_avg(col_indx):
     income_column = census_value_arr[:, col_indx]
 
@@ -190,15 +233,21 @@ def aggregate_CBG_census_data(census_data_collection, user_input=None):
 
   for i in range(len(input_variables)):
     col = input_variables[i]
+    
+    if col in avgVariables:  # Averages
+      value = avgMean_column(i)
+      
+    elif col in avg_MOEVariables:
+      value = approx_avgCol_moe(i)  # Average variable MOE
 
-    if col in majoruniv_cols: # Estimates
-      value = int(sum_column(i))
+    elif col in majoruniv_cols: # other Estimates
+      value = sum_column(i)
 
     elif col in majorMOE_cols: # MOE variables
-      value = int(approx_moe_column(i))
+      value = approx_moe_column(i)
 
     elif col in monetary_variables: # Income variables
-      value = int(income_wgt_avg(i))
+      value = income_wgt_avg(i)
 
     elif col in monetary_moe_cols: # Income MOE
       weight = output_dict[col.replace('_M', '_E')]

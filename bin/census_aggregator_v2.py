@@ -1,28 +1,47 @@
 '''
+
+Introduction:
+-------------
+This Python file contains a function to calculate census values using user-selected coordinates and radius within the US. By using census documents from MongoDB and a geoid list within the chosen market, this function performs variable aggregation for census blocks within the radius. Optionally, users can provide a list of specific census variable IDs. The output is a dictionary encompassing census variable and their values for the selected radius-market area.
+
+last updated on: 01-sep-2023
+
+Dependencies:
+-------------
+- sys
+- json
+- copy
+- functools
+- itertools
+- math.sqrt from the math module
+- numpy
+
+
+
 Instructions:
 -------------
 To use this code, follow the steps below:
 
 1. Install the required dependencies:
-   - numpy: `pip install numpy`
-   - pandas: `pip install pandas`
-   - argparse: `pip install argparse`
 
 2. Ensure that you have the necessary input files:
-   - `file1.txt`: Path to the file containing CBG documents within the radius.
-   - `file2.txt` (optional): Path to an optional second file with user queried census variables.
+   - 'file1.txt': Path to the file containing Census block group documents within the radius.
+   - 'file2.txt': Path to the file with Census block geoids within the radius
+   - 'file2.txt' (Optional) : Path to an optional third file with user queried census variables.
 
 3. Run the code using the command-line interface.
+
     Command Line Usage:
     ------------------
     1) If user queries for any selected census variables:
-       $ python CBG_census_aggregator.py file1.txt file2.txt
+       $ python census_aggregator.py <file1.txt> <file2.txt> <file3.txt>
     
     2) If user requests for all census variables:
-       $ python CBG_census_aggregator.py file1.txt
-       python CBG_census_aggregator.py CBG_census_documents.txt
+       $ python census_aggregator.py <file1.txt> <file2.txt>
+       
 
 '''
+
 
 import base64
 import sys
@@ -118,6 +137,9 @@ majorMOE_cols = populationMOE_univ_all + housing_unitMOE_univ_all + householdMOE
 majoruniv_cols = population_univ_all + housing_unit_univ_all + household_univ
 monetary_moe_cols = [i.replace('_E', '_M') for i in monetary_variables]
 
+avgVariables = ['B25010_E001', 'B25010_E002', 'B25010_E003']
+avg_MOEVariables = ['B25010_M001', 'B25010_M002', 'B25010_M003']
+
 
 # The function to aggregate the census variables:
 
@@ -167,6 +189,7 @@ def aggregate_census_data(census_data_collection, selected_censusBlocks, user_in
 
 
   error_moe = set([-666666666, -999999999, -888888888, -222222222, -333333333, -555555555, '*', '**', '***', None])
+  error_moe_array = np.array(list(error_moe))
 
   # Step 3: Calculate the total estimates and MOE of the selected Census blocks within each CBG:
   #  and returning the values to selected_CBG_collection_dict's censusAttributes:
@@ -258,13 +281,37 @@ def aggregate_census_data(census_data_collection, selected_censusBlocks, user_in
   census_value_arr = np.array(inner_arrays)
 
   # Step 4: Calculate the Total estimates and MOE for the selected market:
+  
+  # To remove the uncomputed values from a given array:
+  def remove_uncomputedValues(arr_input):
+    mask = np.isin(arr_input, error_moe_array, invert=True)
+    return arr_input[mask]
 
   # Functions to aggregate/approximate the census variables:
   def sum_column(col_indx):
-    resultsum = np.nansum(census_value_arr[:, col_indx], axis=0)
+    columnValues = census_value_arr[:, col_indx]
+    columnValues = remove_uncomputedValues(columnValues) # to remove unknown/uncomputed values
+    resultsum = np.nansum(columnValues, axis=0)
     if pd.isna(resultsum):
       return 0
     return int(resultsum)
+    
+  def avgMean_column(col_indx):
+    columnValues = census_value_arr[:, col_indx]
+    columnValues = remove_uncomputedValues(columnValues) # to remove unknown/uncomputed values
+    resultavg = np.nanmean(columnValues, axis=0)
+    if pd.isna(resultavg):
+      return 0
+    return round(resultavg, 3)
+    
+  def approx_avgCol_moe(col_indx):
+    Moe_col = census_value_arr[:, col_indx]
+    Moe_col = remove_uncomputedValues(Moe_col) # Remove values present in the uncomputed_values list
+    Moe_col = Moe_col[Moe_col >= 0]
+    resultAvgMOE = np.max(Moe_col)
+    if np.isnan(resultAvgMOE):
+      return 0
+    return round(resultAvgMOE, 3)
 
   def approx_moe_column(col_indx):
     Moe_col = census_value_arr[:, col_indx]
@@ -332,16 +379,22 @@ def aggregate_census_data(census_data_collection, selected_censusBlocks, user_in
   for i in range(len(user_input)):
     col = user_input[i]
 
-    if col in majoruniv_cols:
+    if col in avgVariables: # Averages
+      value = avgMean_column(i)
+
+    elif col in avg_MOEVariables: # Average variable MOE
+      value = approx_avgCol_moe(i)
+
+    elif col in majoruniv_cols: # other Estimates
       value = sum_column(i)
 
-    elif col in monetary_variables:
+    elif col in monetary_variables:# Income variables
       value = income_wgt_avg(i)
 
-    elif col in majorMOE_cols:
+    elif col in majorMOE_cols: # MOE variables
       value = approx_moe_column(i)
 
-    elif col in monetary_moe_cols:
+    elif col in monetary_moe_cols:# Income MOE
       weight = output_dict[col.replace('_M', '_E')]
       value = approx_income_moe_column(i, weight)
 
@@ -363,14 +416,6 @@ def aggregate_census_data(census_data_collection, selected_censusBlocks, user_in
 
 ## For Direct Execution as a script:
 if __name__ == "__main__":
-    
-    # Command Line Usage:
-    # 1) If user queries for any selected census variables:
-    #    $ python census_aggregator.py file1.txt file2.txt
-    
-    # 2) If user requests for all census variables:
-    #    $ python census_aggregator.py file1.txt file2.txt file3.txt
-    
     
     parser = argparse.ArgumentParser(description="US Census Aggregator Function")
     parser.add_argument("file1", type=str, help="Path to the file containing Census block group documents within the radius")
