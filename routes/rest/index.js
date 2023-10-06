@@ -15,6 +15,7 @@ const AddressTranslation = require("./AddressTranslation")
 const GeoIdCensusBlockSearch = require("./GeoIdCensusBlockSearch")
 const ReverseLookups = require("./ReverseLookups")
 const DemographicsData = require("./DemographicsData")
+const Geometry = require("./Geometry")
 
 // const region = require("./region")
 // const census = require("./census")
@@ -61,6 +62,9 @@ router.get("/reverseLookup/geoid/:geoId", ReverseLookups.searchByGeoId)
 
 // DemographicsData routes................
 router.use("/demographicsData", DemographicsData)
+
+// Geometry routes.....
+router.use("/geometry/:geoId", Geometry.searchByGeoId)
 
 // Search list of  references.................
 router.get("/references/categories", references.categories)
