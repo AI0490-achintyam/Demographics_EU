@@ -119,6 +119,7 @@ module.exports = {
       const selectFields = isBig === true
         ? [
           "geoId",
+          "area",
           "censusAttributes.B01003_E001",
           "censusAttributes.B11001_E001",
           "censusAttributes.B25001_E001",
@@ -129,6 +130,7 @@ module.exports = {
         ]
         : [
           "geoId",
+          "area",
           "censusBlocks",
           "censusAttributes.B01003_E001",
           "censusAttributes.B11001_E001",
@@ -144,6 +146,13 @@ module.exports = {
         .select(selectFields)
         .lean()
         .exec()
+
+      // Compute total areas
+      const { totalLandArea, totalWaterArea } = cbgDocuments.reduce((acc, cur) => {
+        acc.totalLandArea += cur.area?.aland || 0
+        acc.totalWaterArea += cur.area?.awater || 0
+        return acc
+      }, { totalLandArea: 0, totalWaterArea: 0 })
 
       // console.log("CbgDocumentcensuss[0] ==> ", JSON.stringify(cbgDocuments.slice(0, 1), null, 2))
       // await fs.writeFile("/tmp/foo", JSON.stringify(cbgGeoIds))
@@ -196,7 +205,14 @@ module.exports = {
         return acc
       }, [])
 
-      return res.status(200).json({ error: false, censusData })
+      return res.status(200).json({
+        error: false,
+        area: {
+          aland: totalLandArea,
+          awater: totalWaterArea
+        },
+        censusData
+      })
     } catch (err) {
       req.logger.error(err)
       return res.status(500).json({ error: true, message: err.message.slice(0, 1000) }) // error msg from python script failures may be extremely long, so slicing it
