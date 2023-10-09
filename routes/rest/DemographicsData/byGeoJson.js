@@ -144,6 +144,7 @@ module.exports = {
       const selectFields = isBig === true
         ? [
           "geoId",
+          "area",
           "censusAttributes.B01003_E001",
           "censusAttributes.B11001_E001",
           "censusAttributes.B25001_E001",
@@ -154,6 +155,7 @@ module.exports = {
         ]
         : [
           "geoId",
+          "area",
           "censusBlocks",
           "censusAttributes.B01003_E001",
           "censusAttributes.B11001_E001",
@@ -170,6 +172,13 @@ module.exports = {
         .select(selectFields)
         .lean()
         .exec()
+
+      // Calculate total land area and total water area.........
+      const { totalLandArea, totalWaterArea } = cbgDocuments.reduce((acc, cur) => {
+        acc.totalLandArea += cur.area?.aland || 0
+        acc.totalWaterArea += cur.area?.awater || 0
+        return acc
+      }, { totalLandArea: 0, totalWaterArea: 0 })
 
       await fs.mkdir(`./tmp/${reqId}`, { recursive: true }) // first, create an unique tmp folder
 
@@ -220,7 +229,14 @@ module.exports = {
         return acc
       }, [])
 
-      return res.status(200).json({ error: false, censusData })
+      return res.status(200).json({
+        error: false,
+        area: {
+          aland: totalLandArea,
+          awater: totalWaterArea
+        },
+        censusData
+      })
       // return res.status(200).json({ error: false, censusData: JSON.parse(sanitizedOutput) })
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message.slice(0, 1000) }) // error msg from python script failures may be extremely long, so slicing it
