@@ -103,7 +103,7 @@ module.exports = {
       })
         .select([
           "geoId",
-          // "area",
+          "area",
           "censusBlocks",
           "censusAttributes.B01003_E001",
           "censusAttributes.B11001_E001",
@@ -117,11 +117,11 @@ module.exports = {
         .exec()
 
       // calculate total land Area and total water area
-      // const { totalLandArea, totalWaterArea } = cbgDocuments.reduce((acc, cur) => {
-      //   acc.totalLandArea += cur.area?.aland || 0
-      //   acc.totalWaterArea += cur.area?.awater || 0
-      //   return acc
-      // }, { totalLandArea: 0, totalWaterArea: 0 })
+      const { totalLandArea, totalWaterArea } = cbgDocuments.reduce((acc, cur) => {
+        acc.totalLandArea += cur.area?.aland || 0
+        acc.totalWaterArea += cur.area?.awater || 0
+        return acc
+      }, { totalLandArea: 0, totalWaterArea: 0 })
 
       await fs.mkdir(`./tmp/${reqId}`, { recursive: true }) // first, create an unique tmp folder
       await Promise.all([
@@ -165,10 +165,10 @@ module.exports = {
 
       return res.status(200).json({
         error: false,
-        // area: {
-        //   aland: totalLandArea,
-        //   wland: totalWaterArea
-        // },
+        area: {
+          aland: totalLandArea,
+          wland: totalWaterArea
+        },
         censusData
       })
       // return res.status(200).json({ error: false, censusData: JSON.parse(sanitizedOutput) })
