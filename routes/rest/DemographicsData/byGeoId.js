@@ -51,6 +51,7 @@ module.exports = {
           "-_id",
           "geoId",
           "name",
+          "area",
           // "censusBlocks",
           ...chosenAttributes.map((att) => `censusAttributes.${att}`)
         ])
